@@ -7,6 +7,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <script>
+        // INSTANT THEME LOAD (Prevents flashing white screen)
+        (function() {
+            const savedTheme = localStorage.getItem('transaksiku_theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-theme');
+            }
+        })();
+    </script>
+    
     <link rel="apple-touch-icon" href="logo.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -34,7 +44,7 @@
         /* SPLASH SCREEN STYLES */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #ffffff; z-index: 999999;
+            background-color: var(--bg); z-index: 999999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
         }
@@ -182,9 +192,290 @@
         .btn-modal-cancel { background: #f1f5f9; color: var(--text-main); }
         
         #add-wallet-container { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1; }
+
+        /* TOP-BAR & HAMBURGER DRAWER SYSTEM */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background-color: var(--card);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .brand-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.3px;
+        }
+
+        .menu-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 38px;
+            height: 38px;
+            padding: 10px;
+            z-index: 1001;
+            transition: background 0.2s;
+        }
+        .menu-btn:hover {
+            background: #e2e8f0;
+        }
+        .menu-btn span {
+            display: block;
+            height: 2px;
+            width: 100%;
+            background-color: var(--primary);
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-drawer {
+            position: fixed;
+            top: 0;
+            left: -290px;
+            width: 290px;
+            height: 100%;
+            background-color: var(--card);
+            box-shadow: 10px 0 30px rgba(15, 23, 42, 0.1);
+            z-index: 10000;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .sidebar-drawer.open {
+            left: 0;
+        }
+        .drawer-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .drawer-backdrop.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .drawer-close-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .drawer-close-btn:hover {
+            background: #fee2e2;
+            color: var(--danger);
+            border-color: #fca5a5;
+        }
+
+        .drawer-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .drawer-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .drawer-nav-item:hover {
+            background-color: #f1f5f9;
+            color: var(--accent);
+        }
+        .drawer-nav-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-left: 4px solid var(--accent);
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .app-view {
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        /* ADJUST HEADER AND CONTAINERS FOR CLEANER TOP */
+        .container {
+            margin-top: 10px;
+        }
+
+        /* PREMIUM NIGHT MODE (DARK THEME) STYLES */
+        body.dark-theme {
+            --primary: #f8fafc;
+            --bg: #0b0f19;
+            --card: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        body.dark-theme input, 
+        body.dark-theme select {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+        body.dark-theme input::placeholder {
+            color: #475569;
+        }
+        body.dark-theme input:focus, 
+        body.dark-theme select:focus {
+            background-color: #0b0f19;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        body.dark-theme .wallet-item {
+            background-color: #131c2e;
+            border-color: #334155;
+        }
+        body.dark-theme .btn-option {
+            background-color: #334155;
+            color: #f1f5f9;
+            border-color: #475569;
+        }
+        body.dark-theme .wallet-dropdown {
+            background-color: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        body.dark-theme .wallet-dropdown button {
+            color: #f1f5f9;
+            border-bottom-color: #334155;
+        }
+        body.dark-theme .wallet-dropdown button:hover {
+            background-color: #334155;
+        }
+
+        body.dark-theme th, 
+        body.dark-theme td {
+            border-bottom-color: #334155;
+        }
+        body.dark-theme tbody tr:hover {
+            background-color: #131c2e;
+        }
+
+        body.dark-theme .metric-box {
+            background-color: #131c2e;
+            border-color: #334155;
+        }
+
+        body.dark-theme .menu-btn {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-theme .menu-btn:hover {
+            background-color: #334155;
+        }
+        body.dark-theme .menu-btn span {
+            background-color: #f1f5f9;
+        }
+        body.dark-theme .drawer-close-btn {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+        body.dark-theme .drawer-close-btn:hover {
+            background-color: #fee2e2;
+            color: var(--danger);
+        }
+        body.dark-theme .drawer-header, 
+        body.dark-theme .drawer-footer {
+            border-color: #334155;
+        }
+
+        /* SUN/MOON TOGGLE STYLES */
+        .theme-toggle-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-main);
+            font-size: 1.15rem;
+            z-index: 1001;
+        }
+        .theme-toggle-btn:hover {
+            background: #e2e8f0;
+            transform: scale(1.05);
+        }
+        body.dark-theme .theme-toggle-btn {
+            background: #1e293b;
+            border-color: #334155;
+            color: var(--warning);
+        }
+        body.dark-theme .theme-toggle-btn:hover {
+            background: #334155;
+        }
     </style>
 </head>
 <body>
+<script>
+    if (document.documentElement.classList.contains('dark-theme')) {
+        document.body.classList.add('dark-theme');
+    }
+</script>
 
 <div id="splash-screen">
     <img src="logo.png" alt="Transaksiku Logo" class="splash-logo">
@@ -202,132 +493,180 @@
     </div>
 </div>
 
+<!-- TOP BAR HEADER -->
+<div class="top-bar">
+    <button class="menu-btn" onclick="toggleSidebar()" aria-label="Menu Utama">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="brand-container">
+        <img src="logo.png" alt="Transaksiku Logo" class="brand-logo">
+        <span class="brand-name">Transaksiku</span>
+    </div>
+    <button id="theme-toggle-top" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Ubah Tema">🌙</button>
+</div>
+
+<!-- SIDEBAR DRAWER -->
+<div id="drawer-backdrop" class="drawer-backdrop" onclick="toggleSidebar()"></div>
+<div id="sidebar-drawer" class="sidebar-drawer">
+    <div class="drawer-header">
+        <div class="brand-container">
+            <img src="logo.png" alt="Transaksiku Logo" class="brand-logo">
+            <span class="brand-name">Transaksiku</span>
+        </div>
+        <button class="drawer-close-btn" onclick="toggleSidebar()">✕</button>
+    </div>
+    <nav class="drawer-nav" style="flex: 1;">
+        <button id="nav-dashboard" class="drawer-nav-item active" onclick="navigateTo('dashboard')">🏠 Dashboard</button>
+        <button id="nav-history" class="drawer-nav-item" onclick="navigateTo('history')">📜 Riwayat Transaksi</button>
+        <button id="nav-cashflow" class="drawer-nav-item" onclick="navigateTo('cashflow')">📊 Laporan Arus Kas</button>
+    </nav>
+    <div class="drawer-footer" style="padding-top: 15px; border-top: 1px solid #e2e8f0; margin-top: auto;">
+        <button class="drawer-nav-item" onclick="toggleTheme()">
+            <span id="theme-toggle-drawer-icon">🌙</span>
+            <span id="theme-toggle-drawer-text">Mode Malam</span>
+        </button>
+    </div>
+</div>
+
 <div class="container">
-    <div class="header-title">
-        <h1>Dashboard Keuangan</h1>
-        <p style="color: var(--text-muted);">Catat Transaksi Keuangan Anda di Transaksiku.</p>
-    </div>
-
-    <div class="summary-grid">
-        <div class="summary-card total">
-            <p>Total Aset & Kekayaan</p>
-            <h2 id="sum-total">Rp 0</h2>
-        </div>
-        <div class="summary-card cash">
-            <p>Total Kas Aktif</p>
-            <h2 id="sum-cash">Rp 0</h2>
-        </div>
-        <div class="summary-card invest">
-            <p>Total Portofolio Investasi</p>
-            <h2 id="sum-invest">Rp 0</h2>
+    <!-- GLOBAL FILTER CARD (Visible in History & Cashflow views) -->
+    <div id="global-filter-card" class="card" style="display: none; margin-bottom: 20px;">
+        <h3 style="margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--bg); padding-bottom: 8px;">Filter Laporan</h3>
+        <div class="filter-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 0.8rem; margin-bottom: 4px;">Periode Waktu</label>
+                <select id="time-filter" onchange="applyFilter()" style="width: 100%; border-color: var(--accent); color: var(--accent); background: #fff;"></select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 0.8rem; margin-bottom: 4px;">Kategori</label>
+                <select id="category-filter" onchange="applyFilter()" style="width: 100%; border-color: var(--accent); color: var(--accent); background: #fff;"><option value="all">Semua</option></select>
+            </div>
         </div>
     </div>
 
-    <div class="main-grid">
-        <div class="wallet-panel">
-            <div class="card">
-                <h3>Daftar Akun & Portofolio</h3>
-                <div id="wallet-list"></div>
-                
-                <div style="margin-top: 10px;">
-                    <button onclick="toggleAddWalletForm()" class="btn btn-outline">+ Tambah Akun Baru</button>
+    <!-- VIEW 1: DASHBOARD -->
+    <div id="view-dashboard" class="app-view">
+        <div class="header-title">
+            <h1>Dashboard Keuangan</h1>
+            <p style="color: var(--text-muted);">Catat Transaksi Keuangan Anda di Transaksiku.</p>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card total">
+                <p>Total Aset & Kekayaan</p>
+                <h2 id="sum-total">Rp 0</h2>
+            </div>
+            <div class="summary-card cash">
+                <p>Total Kas Aktif</p>
+                <h2 id="sum-cash">Rp 0</h2>
+            </div>
+            <div class="summary-card invest">
+                <p>Total Portofolio Investasi</p>
+                <h2 id="sum-invest">Rp 0</h2>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="wallet-panel">
+                <div class="card">
+                    <h3>Daftar Akun & Portofolio</h3>
+                    <div id="wallet-list"></div>
                     
-                    <div id="add-wallet-container">
-                        <div class="flex-row">
-                            <div class="form-group" style="flex: 1.5; margin-bottom: 0;">
-                                <label style="font-size: 0.8rem;">Nama Akun</label>
-                                <input type="text" id="new-wallet-name" placeholder="Misal: OVO">
+                    <div style="margin-top: 10px;">
+                        <button onclick="toggleAddWalletForm()" class="btn btn-outline">+ Tambah Akun Baru</button>
+                        
+                        <div id="add-wallet-container">
+                            <div class="flex-row">
+                                <div class="form-group" style="flex: 1.5; margin-bottom: 0;">
+                                    <label style="font-size: 0.8rem;">Nama Akun</label>
+                                    <input type="text" id="new-wallet-name" placeholder="Misal: OVO">
+                                </div>
+                                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                    <label style="font-size: 0.8rem;">Jenis</label>
+                                    <select id="new-wallet-type">
+                                        <option value="cash">Kas / Bank</option>
+                                        <option value="invest">Investasi</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                <label style="font-size: 0.8rem;">Jenis</label>
-                                <select id="new-wallet-type">
-                                    <option value="cash">Kas / Bank</option>
-                                    <option value="invest">Investasi</option>
-                                </select>
+                            <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
+                                <label style="font-size: 0.8rem;">Saldo Awal (Opsional)</label>
+                                <input type="text" id="new-wallet-balance" placeholder="0" oninput="formatCurrencyInput(this)">
                             </div>
+                            <button onclick="addWallet()" class="btn btn-primary" style="margin-top: 5px;">Simpan Akun</button>
                         </div>
-                        <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
-                            <label style="font-size: 0.8rem;">Saldo Awal (Opsional)</label>
-                            <input type="text" id="new-wallet-balance" placeholder="0" oninput="formatCurrencyInput(this)">
-                        </div>
-                        <button onclick="addWallet()" class="btn btn-primary" style="margin-top: 5px;">Simpan Akun</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-panel">
-            <div class="card">
-                <h3>Catat Transaksi Baru</h3>
-                
-                <div class="form-group">
-                    <label>📅 Tanggal Transaksi</label>
-                    <input type="date" id="trans-date">
-                </div>
-
-                <div class="flex-row">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Jenis Transaksi</label>
-                        <select id="trans-main-type" onchange="updateCategoryOptions()">
-                            <option value="expense">📉 Pengeluaran / Rugi</option>
-                            <option value="income">📈 Pemasukan / Untung</option>
-                            <option value="debt" style="color: var(--purple); font-weight: bold;">💳 Ambil Hutang</option>
-                            <option value="transfer">🔄 Pindah Uang</option>
-                        </select>
-                    </div>
+            <div class="form-panel">
+                <div class="card">
+                    <h3>Catat Transaksi Baru</h3>
                     
-                    <div class="form-group" style="flex: 1;">
-                        <label>Kategori</label>
-                        <select id="trans-category"></select>
-                    </div>
-                    
-                </div>
-
-                <div class="form-group">
-                    <label>Keterangan Transaksi</label>
-                    <input type="text" id="trans-desc" placeholder="Contoh: Makan siang, Gaji, Beli Reksa Dana...">
-                </div>
-
-                <div class="form-group">
-                    <label>Nominal (Rp)</label>
-                    <input type="text" id="trans-amount" placeholder="0" oninput="formatCurrencyInput(this)">
-                </div>
-
-                <div id="single-wallet-field" class="form-group">
-                    <label id="wallet-field-label">Gunakan Uang Dari Dompet Mana?</label>
-                    <select id="trans-wallet"></select>
-                </div>
-
-                <div id="transfer-fields">
                     <div class="form-group">
-                        <label>Sumber Dana (Dari)</label>
-                        <select id="trans-from"></select>
+                        <label>📅 Tanggal Transaksi</label>
+                        <input type="date" id="trans-date">
                     </div>
-                    <div class="form-group">
-                        <label>Tujuan Simpanan (Ke)</label>
-                        <select id="trans-to"></select>
-                    </div>
-                </div>
 
-                <button onclick="addTransaction()" class="btn btn-primary">Simpan Transaksi</button>
+                    <div class="flex-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Jenis Transaksi</label>
+                            <select id="trans-main-type" onchange="updateCategoryOptions()">
+                                <option value="expense">📉 Pengeluaran / Rugi</option>
+                                <option value="income">📈 Pemasukan / Untung</option>
+                                <option value="debt" style="color: var(--purple); font-weight: bold;">💳 Ambil Hutang</option>
+                                <option value="transfer">🔄 Pindah Uang</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="flex: 1;">
+                            <label>Kategori</label>
+                            <select id="trans-category"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Keterangan Transaksi</label>
+                        <input type="text" id="trans-desc" placeholder="Contoh: Makan siang, Gaji, Beli Reksa Dana...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nominal (Rp)</label>
+                        <input type="text" id="trans-amount" placeholder="0" oninput="formatCurrencyInput(this)">
+                    </div>
+
+                    <div id="single-wallet-field" class="form-group">
+                        <label id="wallet-field-label">Gunakan Uang Dari Dompet Mana?</label>
+                        <select id="trans-wallet"></select>
+                    </div>
+
+                    <div id="transfer-fields">
+                        <div class="form-group">
+                            <label>Sumber Dana (Dari)</label>
+                            <select id="trans-from"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tujuan Simpanan (Ke)</label>
+                            <select id="trans-to"></select>
+                        </div>
+                    </div>
+
+                    <button onclick="addTransaction()" class="btn btn-primary">Simpan Transaksi</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="tabs-header">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('tab-history', this)">Riwayat Transaksi</button>
-                <button class="tab-btn" onclick="switchTab('tab-cashflow', this)">Laporan Arus Kas</button>
-            </div>
-            
-            <div class="filter-container">
-                <select id="time-filter" onchange="applyFilter()"></select>
-                <select id="category-filter" onchange="applyFilter()"><option value="all">Kategori: Semua</option></select>
-            </div>
+    <!-- VIEW 2: RIWAYAT TRANSAKSI -->
+    <div id="view-history" class="app-view" style="display: none;">
+        <div class="header-title">
+            <h1>Riwayat Transaksi</h1>
+            <p style="color: var(--text-muted);">Daftar seluruh catatan pemasukan, pengeluaran, dan transfer Anda.</p>
         </div>
 
-        <div id="tab-history" class="tab-content active">
+        <div class="card">
             <div class="table-container">
                 <table>
                     <thead>
@@ -344,8 +683,16 @@
                 </table>
             </div>
         </div>
+    </div>
 
-        <div id="tab-cashflow" class="tab-content">
+    <!-- VIEW 3: LAPORAN ARUS KAS -->
+    <div id="view-cashflow" class="app-view" style="display: none;">
+        <div class="header-title">
+            <h1>Laporan Arus Kas</h1>
+            <p style="color: var(--text-muted);">Analisis mendalam mengenai pemasukan, pengeluaran, dan portofolio Anda.</p>
+        </div>
+
+        <div class="card">
             <div class="metrics-grid-3">
                 <div class="metric-box">
                     <p>Pemasukan</p>
@@ -624,12 +971,56 @@
         if(catFilter.querySelector(`option[value="${currentCatVal}"]`)) catFilter.value = currentCatVal;
     }
 
-    function switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        btn.classList.add('active');
-        applyFilter(); 
+    function toggleSidebar() {
+        const drawer = document.getElementById('sidebar-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        drawer.classList.toggle('open');
+        backdrop.classList.toggle('show');
+    }
+
+    function navigateTo(viewId) {
+        // Sembunyikan semua view
+        document.querySelectorAll('.app-view').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Tampilkan view yang dipilih
+        const targetView = document.getElementById('view-' + viewId);
+        if (targetView) {
+            targetView.style.display = 'block';
+        }
+
+        // Tampilkan/sembunyikan global filter card
+        const globalFilter = document.getElementById('global-filter-card');
+        if (viewId === 'dashboard') {
+            globalFilter.style.display = 'none';
+        } else {
+            globalFilter.style.display = 'block';
+        }
+
+        // Update status aktif di menu sidebar
+        document.querySelectorAll('.drawer-nav-item').forEach(el => {
+            el.classList.remove('active');
+        });
+        const activeBtn = document.getElementById('nav-' + viewId);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+
+        // Pemicu rendering grafik Chart.js jika beralih ke Laporan Arus Kas
+        if (viewId === 'cashflow') {
+            setTimeout(() => {
+                applyFilter();
+            }, 50);
+        } else {
+            applyFilter();
+        }
+
+        // Tutup sidebar drawer setelah navigasi
+        const drawer = document.getElementById('sidebar-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        drawer.classList.remove('open');
+        backdrop.classList.remove('show');
     }
 
     function getFilteredTransactions() {
@@ -1082,11 +1473,25 @@
         const ctx = document.getElementById('cashflowChart').getContext('2d');
         if (myChart) myChart.destroy(); 
 
+        const isDark = document.body.classList.contains('dark-theme');
+        const textColor = isDark ? '#cbd5e1' : '#1e293b';
+        const borderColor = isDark ? '#1e293b' : '#ffffff';
+
         if(totalIncome === 0 && totalExpense === 0 && currentPeriodDebtTaken === 0) {
             myChart = new Chart(ctx, {
                 type: 'pie',
                 data: { labels: ['Belum ada data'], datasets: [{ data: [1], backgroundColor: ['#e2e8f0'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false }, legend: { position: 'bottom' } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        tooltip: { enabled: false }, 
+                        legend: { 
+                            position: 'bottom',
+                            labels: { color: textColor, font: { family: 'Inter' } }
+                        } 
+                    } 
+                }
             });
             return;
         }
@@ -1098,12 +1503,20 @@
                 datasets: [{
                     data: [totalIncome, totalExpense, currentPeriodDebtTaken],
                     backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
-                    borderWidth: 2, borderColor: '#ffffff', hoverOffset: 6
+                    borderWidth: 2, borderColor: borderColor, hoverOffset: 6
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' } } } }
+                plugins: { 
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { 
+                            color: textColor, 
+                            font: { family: 'Inter', weight: '600' } 
+                        } 
+                    } 
+                }
             }
         });
     }
@@ -1145,6 +1558,54 @@
         renderWallets(); applyFilter();
     }
 
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-theme');
+        if (isDark) {
+            document.documentElement.classList.add('dark-theme');
+            localStorage.setItem('transaksiku_theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark-theme');
+            localStorage.setItem('transaksiku_theme', 'light');
+        }
+        updateThemeToggles();
+        
+        // Redraw chart to update font colors if visible
+        if (document.getElementById('view-cashflow').style.display === 'block') {
+            applyFilter();
+        }
+    }
+
+    function updateThemeToggles() {
+        const isDark = document.body.classList.contains('dark-theme');
+        
+        // Top toggle button icon update
+        const topBtn = document.getElementById('theme-toggle-top');
+        if (topBtn) {
+            topBtn.innerText = isDark ? '☀️' : '🌙';
+        }
+        
+        // Drawer toggle icon & label update
+        const drawerIcon = document.getElementById('theme-toggle-drawer-icon');
+        const drawerText = document.getElementById('theme-toggle-drawer-text');
+        if (drawerIcon && drawerText) {
+            drawerIcon.innerText = isDark ? '☀️' : '🌙';
+            drawerText.innerText = isDark ? 'Mode Terang' : 'Mode Malam';
+        }
+    }
+
+    function initThemeUI() {
+        const savedTheme = localStorage.getItem('transaksiku_theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            document.documentElement.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
+            document.documentElement.classList.remove('dark-theme');
+        }
+        updateThemeToggles();
+    }
+
+    initThemeUI();
     setDefaultDate();
     updateCategoryOptions(); 
     generateDynamicFilters();
