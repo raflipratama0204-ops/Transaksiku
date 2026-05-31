@@ -636,7 +636,11 @@
         <button id="nav-history" class="drawer-nav-item" onclick="navigateTo('history')">📜 Riwayat Transaksi</button>
         <button id="nav-cashflow" class="drawer-nav-item" onclick="navigateTo('cashflow')">📊 Laporan Arus Kas</button>
     </nav>
-    <div class="drawer-footer" style="padding-top: 15px; border-top: 1px solid #e2e8f0; margin-top: auto;">
+    <div class="drawer-footer" style="padding-top: 15px; border-top: 1px solid #e2e8f0; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+        <button class="drawer-nav-item" onclick="toggleReminder()">
+            <span id="reminder-toggle-icon">🔔</span>
+            <span id="reminder-toggle-text">Pengingat Harian (Nonaktif)</span>
+        </button>
         <button class="drawer-nav-item" onclick="toggleTheme()">
             <span id="theme-toggle-drawer-icon">🌙</span>
             <span id="theme-toggle-drawer-text">Mode Malam</span>
@@ -1995,12 +1999,106 @@
         updateThemeToggles();
     }
 
+    function updateReminderToggles() {
+        const isEnabled = localStorage.getItem('transaksiku_reminders') === 'enabled';
+        const iconEl = document.getElementById('reminder-toggle-icon');
+        const textEl = document.getElementById('reminder-toggle-text');
+        
+        if (iconEl && textEl) {
+            if (isEnabled && Notification.permission === 'granted') {
+                iconEl.innerText = '🔕';
+                textEl.innerText = 'Pengingat Harian (Aktif)';
+            } else {
+                iconEl.innerText = '🔔';
+                textEl.innerText = 'Pengingat Harian (Nonaktif)';
+            }
+        }
+    }
+    
+    async function toggleReminder() {
+        const isEnabled = localStorage.getItem('transaksiku_reminders') === 'enabled';
+        if (isEnabled) {
+            localStorage.setItem('transaksiku_reminders', 'disabled');
+            updateReminderToggles();
+            await customAlert('Pengingat harian telah dinonaktifkan.', 'Pengingat Mati');
+        } else {
+            if (!('Notification' in window)) {
+                return await customAlert('Browser Anda tidak mendukung notifikasi.', 'Tidak Didukung');
+            }
+            
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                localStorage.setItem('transaksiku_reminders', 'enabled');
+                updateReminderToggles();
+                showLocalNotification('Pengingat Aktif! 📝', 'Transaksiku akan mengingatkan Anda setiap hari untuk mencatat pengeluaran atau pemasukan.');
+            } else {
+                await customAlert('Izin notifikasi ditolak. Aktifkan izin notifikasi di pengaturan browser Anda.', 'Izin Ditolak');
+            }
+        }
+    }
+
+    function showLocalNotification(title, body) {
+        if (Notification.permission === 'granted') {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification(title, {
+                        body: body,
+                        icon: 'logo.png',
+                        badge: 'logo.png',
+                        vibrate: [200, 100, 200]
+                    });
+                }).catch(err => {
+                    new Notification(title, { body: body, icon: 'logo.png' });
+                });
+            } else {
+                new Notification(title, { body: body, icon: 'logo.png' });
+            }
+        }
+    }
+
+    function checkDailyReminder() {
+        const isEnabled = localStorage.getItem('transaksiku_reminders') === 'enabled';
+        if (!isEnabled || Notification.permission !== 'granted') return;
+
+        const lastReminder = localStorage.getItem('transaksiku_last_reminder_time');
+        const now = Date.now();
+
+        // Check if less than 20 hours have passed since last reminder
+        if (lastReminder && (now - parseInt(lastReminder)) < (20 * 60 * 60 * 1000)) {
+            return;
+        }
+
+        // Check if there is any transaction recorded today
+        const todayStart = new Date();
+        todayStart.setHours(0,0,0,0);
+        const todayTime = todayStart.getTime();
+
+        const hasTransactionToday = transactions.some(t => {
+            const tDateObj = new Date(t.timestamp || t.id);
+            tDateObj.setHours(0,0,0,0);
+            return tDateObj.getTime() === todayTime;
+        });
+
+        if (!hasTransactionToday) {
+            showLocalNotification(
+                'Belum mencatat hari ini? 📝',
+                'Jangan lupa luangkan waktu 1 menit untuk mencatat pengeluaran atau pemasukan Anda hari ini di Transaksiku!'
+            );
+            localStorage.setItem('transaksiku_last_reminder_time', now.toString());
+        }
+    }
+
     initThemeUI();
+    updateReminderToggles();
     setDefaultDate();
     updateCategoryOptions(); 
     generateDynamicFilters();
     renderWallets(); 
     applyFilter();
+    
+    // PWA Daily Reminder audit check shortly after page loads, and check every 1 hour
+    setTimeout(checkDailyReminder, 5000);
+    setInterval(checkDailyReminder, 60 * 60 * 1000);
 </script>
 
 </body>
