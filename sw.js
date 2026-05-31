@@ -1,8 +1,9 @@
-const CACHE_NAME = 'transaksiku-cache-v3';
+const CACHE_NAME = 'transaksiku-cache-v4';
 const ASSETS_TO_CACHE = [
-  'index.html',
-  'manifest.json',
-  'logo.png',
+  './',
+  './index.html',
+  './manifest.json',
+  './logo.png',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
@@ -32,9 +33,9 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Pemanggilan aplikasi
+// PERBAIKAN: Menggunakan respondWith agar halaman dikembalikan ke layar HP
 self.addEventListener('fetch', (event) => {
-  event.waitUntil(
+  event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
     })
