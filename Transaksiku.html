@@ -552,6 +552,61 @@
     </div>
 </div>
 
+<!-- EDIT TRANSACTION MODAL -->
+<div id="edit-transaction-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 450px;">
+        <h3 style="border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-bottom: 15px;">Ubah Transaksi</h3>
+        
+        <input type="hidden" id="edit-trans-id">
+        
+        <div class="form-group">
+            <label>Jenis Transaksi</label>
+            <select id="edit-trans-main-type" onchange="updateEditCategoryOptions()"></select>
+        </div>
+        
+        <div class="form-group">
+            <label>📅 Tanggal Transaksi</label>
+            <input type="date" id="edit-trans-date">
+        </div>
+
+        <div class="form-group" id="edit-category-group">
+            <label>Kategori</label>
+            <select id="edit-trans-category"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Keterangan Transaksi</label>
+            <input type="text" id="edit-trans-desc" placeholder="Keterangan...">
+        </div>
+
+        <div class="form-group">
+            <label>Nominal (Rp)</label>
+            <input type="text" id="edit-trans-amount" placeholder="0" oninput="formatCurrencyInput(this)">
+        </div>
+
+        <div id="edit-single-wallet-field" class="form-group">
+            <label id="edit-wallet-field-label">Gunakan Uang Dari Dompet Mana?</label>
+            <select id="edit-trans-wallet"></select>
+        </div>
+
+        <div id="edit-transfer-fields" style="display: none;">
+            <div class="form-group">
+                <label>Sumber Dana (Dari)</label>
+                <select id="edit-trans-from"></select>
+            </div>
+            <div class="form-group">
+                <label>Tujuan Simpanan (Ke)</label>
+                <select id="edit-trans-to"></select>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button onclick="closeEditModal()" class="btn btn-modal-cancel" style="margin:0; width:auto; padding:10px 20px;">Batal</button>
+            <button onclick="updateTransaction()" class="btn btn-primary" style="margin:0; width:auto; padding:10px 20px;">Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+
 <!-- TOP BAR HEADER -->
 <div class="top-bar">
     <button class="menu-btn" onclick="toggleSidebar()" aria-label="Menu Utama">
@@ -856,8 +911,8 @@
     }
 
     let wallets = JSON.parse(localStorage.getItem('keuangan_wallets28')) || [
-        { id: 1, name: 'Dompet Tunai', balance: 500000, type: 'cash' },
-        { id: 2, name: 'Rekening Bank', balance: 2500000, type: 'cash' },
+        { id: 1, name: 'Dompet Tunai', balance: 0, type: 'cash' },
+        { id: 2, name: 'Rekening Bank', balance: 0, type: 'cash' },
         { id: 3, name: 'Portofolio Saham', balance: 0, type: 'invest' }
     ];
     let transactions = JSON.parse(localStorage.getItem('keuangan_transactions28')) || [];
@@ -1400,7 +1455,10 @@
                     <td><span class="badge ${badgeClass}">${t.category}</span></td>
                     <td style="font-size: 0.9rem; font-weight: 500; color: var(--primary);">${trackPrefix}${t.walletName}</td>
                     <td class="text-bold" style="${valColor}">${formatRp(t.amount)}</td>
-                    <td><button onclick="deleteTransaction(${t.id})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 1rem;" title="Hapus">❌</button></td>
+                    <td style="white-space: nowrap;">
+                        <button onclick="editTransaction(${t.id})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size: 1rem; margin-right: 8px;" title="Ubah">✏️</button>
+                        <button onclick="deleteTransaction(${t.id})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 1rem;" title="Hapus">❌</button>
+                    </td>
                 </tr>
             `;
         });
@@ -1637,6 +1695,249 @@
         }
 
         transactions.splice(tIndex, 1);
+        saveData();
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-transaction-modal').classList.remove('active');
+    }
+
+    function populateEditCategories(mainType) {
+        const categorySelect = document.getElementById('edit-trans-category');
+        categorySelect.innerHTML = ''; 
+
+        if (mainType === 'expense') {
+            categorySelect.innerHTML = `
+                <option value="Makanan">🍔 Makanan & Minuman</option>
+                <option value="Hiburan">🎬 Hiburan & Rekreasi</option>
+                <option value="Pendidikan">📚 Pendidikan / Kursus</option>
+                <option value="Belanja">🛒 Belanja Bulanan / Keperluan</option>
+                <option value="Transportasi">🚗 Transportasi / Bensin</option>
+                <option value="Tagihan">💡 Tagihan / Listrik / Operasional</option>
+                <option value="Cicilan" style="font-weight: bold;">💳 Pembayaran Cicilan / Hutang</option>
+                <option value="Kerugian Investasi" style="color:var(--danger); font-weight:bold;">📉 Kerugian Investasi (Cut Loss)</option>
+                <option value="Kesehatan">💊 Kesehatan / Medis</option>
+                <option value="Lainnya">💸 Pengeluaran Lain</option>
+            `;
+        } else if (mainType === 'income') {
+            categorySelect.innerHTML = `
+                <option value="Gaji">💰 Gaji / Omzet Bisnis</option>
+                <option value="Keuntungan Investasi" style="color:var(--success); font-weight:bold;">📈 Keuntungan Investasi (Profit/Dividen)</option>
+                <option value="Lainnya">💵 Pemasukan Lain-lain</option>
+            `;
+        } else if (mainType === 'debt') {
+            categorySelect.innerHTML = `
+                <option value="Pinjaman Bank">🏦 Pinjaman Bank / KTA</option>
+                <option value="Kartu Kredit">💳 Paylater / Kartu Kredit</option>
+                <option value="Pinjaman Pribadi">🤝 Pinjaman Teman / Keluarga</option>
+            `;
+        } else if (mainType === 'transfer') {
+            categorySelect.innerHTML = `
+                <option value="Mutasi">🔄 Mutasi Kas (Tarik / Setor Tunai)</option>
+                <option value="Investasi">🏦 Top Up Portofolio (Beli Saham/Reksa Dana)</option>
+            `;
+        } else if (mainType === 'adjustment') {
+            categorySelect.innerHTML = `
+                <option value="Koreksi (+)">⚙️ Koreksi (+)</option>
+                <option value="Koreksi (-)">⚙️ Koreksi (-)</option>
+                <option value="Saldo Awal">⚙️ Saldo Awal</option>
+            `;
+        }
+    }
+
+    function updateEditCategoryOptions() {
+        const mainType = document.getElementById('edit-trans-main-type').value;
+        populateEditCategories(mainType);
+        
+        if (mainType === 'transfer') {
+            document.getElementById('edit-single-wallet-field').style.display = 'none';
+            document.getElementById('edit-transfer-fields').style.display = 'block';
+        } else {
+            document.getElementById('edit-single-wallet-field').style.display = 'block';
+            document.getElementById('edit-transfer-fields').style.display = 'none';
+        }
+    }
+
+    function editTransaction(id) {
+        const t = transactions.find(trans => trans.id === id);
+        if (!t) return;
+
+        document.getElementById('edit-trans-id').value = t.id;
+        
+        // Populate & select mainType
+        const mainTypeSelect = document.getElementById('edit-trans-main-type');
+        mainTypeSelect.innerHTML = `
+            <option value="expense">📉 Pengeluaran / Rugi</option>
+            <option value="income">📈 Pemasukan / Untung</option>
+            <option value="debt" style="color: var(--purple); font-weight: bold;">💳 Ambil Hutang</option>
+            <option value="transfer">🔄 Pindah Uang</option>
+        `;
+        if (t.mainType === 'adjustment') {
+            mainTypeSelect.innerHTML += `<option value="adjustment">⚙️ Penyesuaian Saldo</option>`;
+        }
+        mainTypeSelect.value = t.mainType;
+
+        // Set date
+        const dateObj = new Date(t.timestamp || t.id);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        document.getElementById('edit-trans-date').value = `${yyyy}-${mm}-${dd}`;
+
+        // Populate Categories & Select
+        populateEditCategories(t.mainType);
+        document.getElementById('edit-trans-category').value = t.category;
+
+        // Desc & Amount
+        document.getElementById('edit-trans-desc').value = t.desc;
+        document.getElementById('edit-trans-amount').value = new Intl.NumberFormat('id-ID').format(t.amount);
+
+        // Populate Wallets
+        const selectSingle = document.getElementById('edit-trans-wallet');
+        const selectFrom = document.getElementById('edit-trans-from');
+        const selectTo = document.getElementById('edit-trans-to');
+        
+        selectSingle.innerHTML = ''; selectFrom.innerHTML = ''; selectTo.innerHTML = '';
+        wallets.forEach(w => {
+            selectSingle.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+            selectFrom.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+            selectTo.innerHTML += `<option value="${w.id}">${w.name}</option>`;
+        });
+
+        // Toggle Transfer vs Single Wallet
+        if (t.mainType === 'transfer') {
+            document.getElementById('edit-single-wallet-field').style.display = 'none';
+            document.getElementById('edit-transfer-fields').style.display = 'block';
+            document.getElementById('edit-trans-from').value = t.fromId;
+            document.getElementById('edit-trans-to').value = t.toId;
+        } else {
+            document.getElementById('edit-single-wallet-field').style.display = 'block';
+            document.getElementById('edit-transfer-fields').style.display = 'none';
+            document.getElementById('edit-trans-wallet').value = t.walletId;
+        }
+
+        // Show Modal
+        document.getElementById('edit-transaction-modal').classList.add('active');
+    }
+
+    async function updateTransaction() {
+        const id = parseInt(document.getElementById('edit-trans-id').value);
+        const dateInput = document.getElementById('edit-trans-date').value;
+        const desc = document.getElementById('edit-trans-desc').value;
+        const amount = parseCurrencyValue(document.getElementById('edit-trans-amount').value);
+        const category = document.getElementById('edit-trans-category').value;
+        const mainType = document.getElementById('edit-trans-main-type').value;
+
+        if (!dateInput) return await customAlert('Tanggal wajib diisi!', 'Data Tidak Lengkap');
+        if (!desc || !amount || amount <= 0) return await customAlert('Keterangan dan nominal wajib diisi dengan benar!', 'Data Tidak Lengkap');
+
+        const tIndex = transactions.findIndex(t => t.id === id);
+        if (tIndex === -1) return;
+        const oldT = transactions[tIndex];
+
+        // 1. REVERT balances based on the old transaction
+        if (oldT.mainType === 'transfer') {
+            let wFrom = wallets.find(w => w.id === oldT.fromId);
+            let wTo = wallets.find(w => w.id === oldT.toId);
+            if (wFrom) wFrom.balance += oldT.amount;
+            if (wTo) wTo.balance -= oldT.amount;
+        } else if (oldT.mainType === 'adjustment') {
+            let w = wallets.find(w => w.id === oldT.walletId);
+            if (w) {
+                if (oldT.category === 'Koreksi (+)' || oldT.category === 'Saldo Awal') w.balance -= oldT.amount;
+                else w.balance += oldT.amount;
+            }
+        } else {
+            let w = wallets.find(w => w.id === oldT.walletId);
+            if (w) {
+                if (oldT.mainType === 'income' || oldT.mainType === 'debt') w.balance -= oldT.amount;
+                if (oldT.mainType === 'expense') w.balance += oldT.amount;
+            }
+        }
+
+        // Helper to perform rollback if validation fails
+        const rollbackOldBalances = () => {
+            if (oldT.mainType === 'transfer') {
+                let wFrom = wallets.find(w => w.id === oldT.fromId);
+                let wTo = wallets.find(w => w.id === oldT.toId);
+                if (wFrom) wFrom.balance -= oldT.amount;
+                if (wTo) wTo.balance += oldT.amount;
+            } else if (oldT.mainType === 'adjustment') {
+                let w = wallets.find(w => w.id === oldT.walletId);
+                if (w) {
+                    if (oldT.category === 'Koreksi (+)' || oldT.category === 'Saldo Awal') w.balance += oldT.amount;
+                    else w.balance -= oldT.amount;
+                }
+            } else {
+                let w = wallets.find(w => w.id === oldT.walletId);
+                if (w) {
+                    if (oldT.mainType === 'income' || oldT.mainType === 'debt') w.balance += oldT.amount;
+                    if (oldT.mainType === 'expense') w.balance -= oldT.amount;
+                }
+            }
+        };
+
+        // 2. APPLY balances based on the new edit values
+        let dateVals = dateInput.split('-');
+        let dateObj = new Date(dateVals[0], dateVals[1] - 1, dateVals[2]);
+        let dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        let timeStamp = dateObj.getTime();
+
+        if (mainType === 'transfer') {
+            const fromId = parseInt(document.getElementById('edit-trans-from').value);
+            const toId = parseInt(document.getElementById('edit-trans-to').value);
+            if (fromId === toId) {
+                rollbackOldBalances();
+                return await customAlert('Pilih dompet yang berbeda!', 'Mutasi Gagal');
+            }
+
+            let wFrom = wallets.find(w => w.id === fromId);
+            let wTo = wallets.find(w => w.id === toId);
+
+            if (!wFrom || !wTo) {
+                rollbackOldBalances();
+                return await customAlert('Dompet tidak ditemukan!', 'Error');
+            }
+            if (wFrom.balance < amount) {
+                rollbackOldBalances();
+                return await customAlert(`Saldo di [${wFrom.name}] tidak cukup.`, 'Saldo Kurang');
+            }
+
+            wFrom.balance -= amount; wTo.balance += amount;
+            
+            transactions[tIndex] = {
+                id, timestamp: timeStamp, date: dateStr, desc, mainType, category, amount,
+                walletName: `${wFrom.name} ➔ ${wTo.name}`, fromId: wFrom.id, toId: wTo.id
+            };
+
+        } else {
+            const walletId = parseInt(document.getElementById('edit-trans-wallet').value);
+            let w = wallets.find(w => w.id === walletId);
+            
+            if (!w) {
+                rollbackOldBalances();
+                return await customAlert('Dompet tidak ditemukan!', 'Error');
+            }
+            
+            if (mainType === 'expense' && w.balance < amount) {
+                rollbackOldBalances();
+                return await customAlert(`Saldo di [${w.name}] tidak cukup untuk pengeluaran/kerugian ini.`, 'Saldo Kurang');
+            }
+
+            if (mainType === 'income' || mainType === 'debt') w.balance += amount;
+            if (mainType === 'expense') w.balance -= amount;
+            if (mainType === 'adjustment') {
+                if (category === 'Koreksi (+)' || category === 'Saldo Awal') w.balance += amount;
+                else w.balance -= amount;
+            }
+
+            transactions[tIndex] = {
+                id, timestamp: timeStamp, date: dateStr, desc, mainType, category, amount,
+                walletName: w.name, walletId: w.id
+            };
+        }
+
+        closeEditModal();
         saveData();
     }
 
