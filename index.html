@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaksiku - Catatan Keuangan Pribadi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --purple: #8b5cf6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg); color: var(--text-main); padding: 15px; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* SPLASH SCREEN STYLES */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff; z-index: 999999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+        }
+        #splash-screen.hidden { opacity: 0; visibility: hidden; }
+        .splash-logo { width: 280px; max-width: 80%; animation: pulseLogo 2s infinite ease-in-out; }
+        @keyframes pulseLogo { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* Header & Summaries */
+        .header-title { text-align: left; margin-bottom: 20px; color: var(--primary); }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .summary-card { padding: 20px; border-radius: 16px; color: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .summary-card.total { background: linear-gradient(135deg, #0f172a, #1e293b); }
+        .summary-card.cash { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .summary-card.invest { background: linear-gradient(135deg, #10b981, #059669); }
+        .summary-card p { font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px; }
+        .summary-card h2 { font-size: 1.6rem; letter-spacing: -0.5px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+
+        /* Main Content Grid & Mobile Layout */
+        .main-grid { display: flex; gap: 25px; margin-bottom: 30px; }
+        .form-panel { flex: 1.5; }
+        .wallet-panel { flex: 1; }
+        
+        @media (max-width: 768px) { 
+            .main-grid { flex-direction: column; }
+            .form-panel { order: 2; } 
+            .wallet-panel { order: 1; margin-bottom: 0px; } 
+            .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+            .summary-card { padding: 15px; border-radius: 12px; }
+            .summary-card h2 { font-size: 1.2rem; }
+            .summary-card p { font-size: 0.75rem; margin-bottom: 2px; }
+            .summary-card:nth-child(3) { grid-column: span 2; }
+        }
+
+        /* Cards Generic */
+        .card { background: var(--card); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card h3 { margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+
+        /* Wallets List & Action Dropdown */
+        .wallet-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff;}
+        .wallet-item.invest-type { border-left: 4px solid var(--success); }
+        .wallet-item.cash-type { border-left: 4px solid var(--accent); }
+        .w-info h4 { font-size: 1rem; color: var(--primary); margin: 0; }
+        .w-info p { font-size: 0.8rem; color: var(--text-muted); margin: 0; margin-top: 3px;}
+        .w-balance { text-align: right; }
+        .w-balance-val { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; display: block; }
+        
+        .wallet-menu-container { position: relative; display: inline-block; }
+        .btn-option { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer; color: var(--text-main); font-weight: 600;}
+        .wallet-dropdown {
+            position: absolute; right: 0; top: 110%; background: white; border: 1px solid #e2e8f0;
+            border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100;
+            display: flex; flex-direction: column; min-width: 160px; overflow: hidden;
+        }
+        .wallet-dropdown button { background: none; border: none; padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; border-radius: 0; }
+        .wallet-dropdown button:hover { background: #f8fafc; }
+
+        /* Forms & Inputs */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #f8fafc; font-family: 'Inter', sans-serif;}
+        input[type="date"] { cursor: pointer; }
+        input:focus, select:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background-color: var(--accent); color: white; margin-top: 10px; }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-outline { background-color: transparent; border: 1px dashed var(--text-muted); color: var(--text-main); margin-top: 10px; }
+        .btn-outline:hover { background-color: #f1f5f9; }
+
+        /* Tabs & Filters */
+        .tabs-header { display: flex; flex-direction: column; gap: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; }
+        .tabs { display: flex; gap: 10px; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: background 0.2s; width: auto; }
+        .tab-btn.active { background-color: var(--primary); color: white; }
+        
+        .filter-container { display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-container select { width: auto; flex: 1; min-width: 150px; padding: 8px 15px; font-weight: 600; background: #fff; border-color: var(--accent); color: var(--accent); cursor: pointer; }
+        optgroup { font-weight: bold; color: var(--primary); }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95rem; min-width: 600px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        tbody tr:hover { background-color: #f8fafc; }
+        
+        /* Badges */
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; white-space: nowrap; }
+        .bg-green { background-color: #d1fae5; color: #065f46; }
+        .bg-red { background-color: #fee2e2; color: #991b1b; }
+        .bg-blue { background-color: #dbeafe; color: #1e40af; }
+        .bg-gray { background-color: #e2e8f0; color: #334155; }
+        .bg-yellow { background-color: #fef3c7; color: #b45309; }
+        .bg-purple { background-color: #ede9fe; color: #5b21b6; }
+        .text-bold { font-weight: 700; }
+
+        #transfer-fields { display: none; }
+        .flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Arus Kas List & Metrics */
+        .metrics-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
+        .metrics-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .metric-box { padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; background: #f8fafc; transition: all 0.3s; }
+        .metric-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; line-height: 1.3; }
+        
+        .metric-box h3 { 
+            border: none; padding: 0; margin: 0; font-size: 1.3rem; 
+            white-space: nowrap; overflow-x: auto; scrollbar-width: none;
+        }
+        .metric-box h3::-webkit-scrollbar { display: none; } 
+        
+        @media (max-width: 768px) {
+            .metrics-grid-3 { gap: 5px; margin-bottom: 10px; }
+            .metrics-grid-2 { gap: 5px; margin-bottom: 20px; }
+            .metric-box { padding: 10px 4px; border-radius: 8px;}
+            .metric-box p { font-size: 0.65rem; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .metric-box h3 { font-size: 0.85rem; }
+            #debt-detail, #ratio-desc { font-size: 0.6rem !important; margin-top: 2px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        }
+        
+        /* Item Rincian Laporan */
+        .flow-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .flow-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
+        .flow-category { font-weight: 600; font-size: 0.95rem; }
+        .flow-amount { font-weight: 700; font-size: 0.95rem; }
+        .flow-bar-bg { width: 100%; height: 6px; background-color: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .flow-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease-out; }
+        
+        .chart-container { position: relative; height: 280px; width: 100%; margin-bottom: 30px; display: flex; justify-content: center; }
+        .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .split-grid { grid-template-columns: 1fr; } }
+
+        /* CUSTOM MODAL POPUP STYLES */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box { background: var(--card); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); transform: scale(0.95); transition: transform 0.2s ease-in-out; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-box h3 { margin-bottom: 15px; color: var(--primary); font-size: 1.3rem; border: none; padding: 0; }
+        .modal-box p { color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem; white-space: pre-wrap; line-height: 1.5; }
+        .modal-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 1rem; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-actions button { margin: 0; width: auto; padding: 10px 20px; font-size: 0.95rem; }
+        .btn-modal-cancel { background: #f1f5f9; color: var(--text-main); }
+        
+        #add-wallet-container { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1; }
+    </style>
+</head>
+<body>
+
+<div id="splash-screen">
+    <img src="logo.png" alt="Transaksiku Logo" class="splash-logo">
+</div>
+
+<div id="custom-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 id="modal-title">Perhatian</h3>
+        <p id="modal-message">Pesan di sini</p>
+        <input type="text" id="modal-input" class="modal-input" style="display:none;" autocomplete="off">
+        <div class="modal-actions">
+            <button id="modal-btn-cancel" class="btn btn-modal-cancel" style="display:none;">Batal</button>
+            <button id="modal-btn-confirm" class="btn btn-primary">OK</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header-title">
+        <h1>Dashboard Keuangan</h1>
+        <p style="color: var(--text-muted);">Catat Transaksi Keuangan Anda di Transaksiku.</p>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card total">
+            <p>Total Aset & Kekayaan</p>
+            <h2 id="sum-total">Rp 0</h2>
+        </div>
+        <div class="summary-card cash">
+            <p>Total Kas Aktif</p>
+            <h2 id="sum-cash">Rp 0</h2>
+        </div>
+        <div class="summary-card invest">
+            <p>Total Portofolio Investasi</p>
+            <h2 id="sum-invest">Rp 0</h2>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="wallet-panel">
+            <div class="card">
+                <h3>Daftar Akun & Portofolio</h3>
+                <div id="wallet-list"></div>
+                
+                <div style="margin-top: 10px;">
+                    <button onclick="toggleAddWalletForm()" class="btn btn-outline">+ Tambah Akun Baru</button>
+                    
+                    <div id="add-wallet-container">
+                        <div class="flex-row">
+                            <div class="form-group" style="flex: 1.5; margin-bottom: 0;">
+                                <label style="font-size: 0.8rem;">Nama Akun</label>
+                                <input type="text" id="new-wallet-name" placeholder="Misal: OVO">
+                            </div>
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label style="font-size: 0.8rem;">Jenis</label>
+                                <select id="new-wallet-type">
+                                    <option value="cash">Kas / Bank</option>
+                                    <option value="invest">Investasi</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px; margin-bottom: 10px;">
+                            <label style="font-size: 0.8rem;">Saldo Awal (Opsional)</label>
+                            <input type="text" id="new-wallet-balance" placeholder="0" oninput="formatCurrencyInput(this)">
+                        </div>
+                        <button onclick="addWallet()" class="btn btn-primary" style="margin-top: 5px;">Simpan Akun</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-panel">
+            <div class="card">
+                <h3>Catat Transaksi Baru</h3>
+                
+                <div class="form-group">
+                    <label>📅 Tanggal Transaksi</label>
+                    <input type="date" id="trans-date">
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Jenis Transaksi</label>
+                        <select id="trans-main-type" onchange="updateCategoryOptions()">
+                            <option value="expense">📉 Pengeluaran / Rugi</option>
+                            <option value="income">📈 Pemasukan / Untung</option>
+                            <option value="debt" style="color: var(--purple); font-weight: bold;">💳 Ambil Hutang</option>
+                            <option value="transfer">🔄 Pindah Uang</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label>Kategori</label>
+                        <select id="trans-category"></select>
+                    </div>
+                    
+                </div>
+
+                <div class="form-group">
+                    <label>Keterangan Transaksi</label>
+                    <input type="text" id="trans-desc" placeholder="Contoh: Makan siang, Gaji, Beli Reksa Dana...">
+                </div>
+
+                <div class="form-group">
+                    <label>Nominal (Rp)</label>
+                    <input type="text" id="trans-amount" placeholder="0" oninput="formatCurrencyInput(this)">
+                </div>
+
+                <div id="single-wallet-field" class="form-group">
+                    <label id="wallet-field-label">Gunakan Uang Dari Dompet Mana?</label>
+                    <select id="trans-wallet"></select>
+                </div>
+
+                <div id="transfer-fields">
+                    <div class="form-group">
+                        <label>Sumber Dana (Dari)</label>
+                        <select id="trans-from"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tujuan Simpanan (Ke)</label>
+                        <select id="trans-to"></select>
+                    </div>
+                </div>
+
+                <button onclick="addTransaction()" class="btn btn-primary">Simpan Transaksi</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="tabs-header">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('tab-history', this)">Riwayat Transaksi</button>
+                <button class="tab-btn" onclick="switchTab('tab-cashflow', this)">Laporan Arus Kas</button>
+            </div>
+            
+            <div class="filter-container">
+                <select id="time-filter" onchange="applyFilter()"></select>
+                <select id="category-filter" onchange="applyFilter()"><option value="all">Kategori: Semua</option></select>
+            </div>
+        </div>
+
+        <div id="tab-history" class="tab-content active">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Keterangan</th>
+                            <th>Kategori</th>
+                            <th>Jalur Uang</th>
+                            <th>Nominal</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-cashflow" class="tab-content">
+            <div class="metrics-grid-3">
+                <div class="metric-box">
+                    <p>Pemasukan</p>
+                    <h3 id="metric-income" style="color: var(--success);">Rp 0</h3>
+                </div>
+                <div class="metric-box">
+                    <p>Pengeluaran</p>
+                    <h3 id="metric-expense" style="color: var(--danger);">Rp 0</h3>
+                </div>
+                <div class="metric-box" style="border: 2px solid var(--accent); background: #eff6ff;">
+                    <p>Arus Kas (Net)</p>
+                    <h3 id="metric-net" style="color: var(--accent);">Rp 0</h3>
+                </div>
+            </div>
+
+            <div class="metrics-grid-2">
+                <div class="metric-box" id="outstanding-debt-box" style="border-color: var(--purple); background: #f5f3ff;">
+                    <p>Sisa Total Hutang</p>
+                    <h3 id="metric-outstanding-debt" style="color: var(--purple);">Rp 0</h3>
+                    <p id="debt-detail" style="font-size: 0.75rem; margin-top: 5px; color: var(--text-muted);">
+                        Diambil: 0 | Dibayar: 0
+                    </p>
+                </div>
+                <div class="metric-box" id="ratio-box">
+                    <p>Beban Cicilan (DTI)</p>
+                    <h3 id="metric-ratio">0%</h3>
+                    <p id="ratio-desc" style="font-size: 0.75rem; margin-top: 5px;">Sangat Sehat</p>
+                </div>
+            </div>
+
+            <h4 style="margin-bottom: 10px; text-align: center;">Perbandingan Porsi Uang Keluar & Masuk</h4>
+            <div class="chart-container">
+                <canvas id="cashflowChart"></canvas>
+            </div>
+
+            <div class="split-grid">
+                <div>
+                    <h4 style="margin-bottom: 15px; color: var(--danger); border-bottom: 2px solid var(--danger); padding-bottom: 5px;">Laporan Pengeluaran per Kategori:</h4>
+                    <div id="cashflow-expense-list"></div>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 15px; color: var(--success); border-bottom: 2px solid var(--success); padding-bottom: 5px;">Rincian Pemasukan:</h4>
+                    <div id="cashflow-income-list"></div>
+                    
+                    <h4 style="margin-top: 25px; margin-bottom: 15px; color: var(--purple); border-bottom: 2px solid var(--purple); padding-bottom: 5px;">Rincian Pinjaman Diambil:</h4>
+                    <div id="cashflow-debt-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Penanganan Splash Screen Aman
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.classList.add('hidden');
+                setTimeout(() => splash.style.display = 'none', 600);
+            }
+        }, 1500); 
+    });
+
+    // PENDAFTARAN SERVICE WORKER UNTUK STABILITAS OFFLINE / HOME SCREEN
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker aktif!', reg.scope))
+                .catch(err => console.log('Service Worker bermasalah:', err));
+        });
+    }
+
+    let wallets = JSON.parse(localStorage.getItem('keuangan_wallets28')) || [
+        { id: 1, name: 'Dompet Tunai', balance: 500000, type: 'cash' },
+        { id: 2, name: 'Rekening Bank', balance: 2500000, type: 'cash' },
+        { id: 3, name: 'Portofolio Saham', balance: 0, type: 'invest' }
+    ];
+    let transactions = JSON.parse(localStorage.getItem('keuangan_transactions28')) || [];
+    let myChart = null;
+
+    const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+
+    function formatCurrencyInput(input) {
+        let val = input.value;
+        let isNegative = val.startsWith('-');
+        let cleanVal = val.replace(/[^0-9]/g, '');
+        if (cleanVal) {
+            let formatted = new Intl.NumberFormat('id-ID').format(cleanVal);
+            input.value = isNegative ? '-' + formatted : formatted;
+        } else {
+            input.value = isNegative ? '-' : '';
+        }
+    }
+
+    function parseCurrencyValue(value) {
+        if(!value) return 0;
+        let strVal = value.toString();
+        let isNegative = strVal.startsWith('-');
+        let cleanVal = strVal.replace(/[^0-9]/g, '');
+        let parsed = parseFloat(cleanVal) || 0;
+        return isNegative ? -parsed : parsed;
+    }
+
+    function showModal({ type, title, message, defaultValue = '', isCurrency = false }) {
+        return new Promise((resolve) => {
+            const overlay = document.getElementById('custom-modal');
+            const titleEl = document.getElementById('modal-title');
+            const messageEl = document.getElementById('modal-message');
+            const inputEl = document.getElementById('modal-input');
+            const btnCancel = document.getElementById('modal-btn-cancel');
+            const btnConfirm = document.getElementById('modal-btn-confirm');
+
+            titleEl.innerText = title || 'Informasi';
+            messageEl.innerText = message;
+            
+            inputEl.style.display = 'none';
+            btnCancel.style.display = 'none';
+            inputEl.value = '';
+            inputEl.oninput = null;
+
+            if (type === 'prompt') {
+                inputEl.style.display = 'block';
+                if (isCurrency) {
+                    inputEl.value = new Intl.NumberFormat('id-ID').format(parseCurrencyValue(defaultValue));
+                    inputEl.oninput = function() { formatCurrencyInput(this); };
+                } else {
+                    inputEl.value = defaultValue;
+                }
+                btnCancel.style.display = 'block';
+                setTimeout(() => inputEl.focus(), 100);
+            } else if (type === 'confirm') {
+                btnCancel.style.display = 'block';
+            }
+
+            overlay.classList.add('active');
+
+            const closeAndResolve = (result) => {
+                overlay.classList.remove('active');
+                btnConfirm.onclick = null;
+                btnCancel.onclick = null;
+                resolve(result);
+            };
+
+            btnConfirm.onclick = () => {
+                if (type === 'prompt') closeAndResolve(inputEl.value);
+                else closeAndResolve(true);
+            };
+            btnCancel.onclick = () => {
+                if (type === 'prompt') closeAndResolve(null);
+                else closeAndResolve(false);
+            };
+        });
+    }
+
+    const customAlert = (msg, title = 'Perhatian') => showModal({ type: 'alert', message: msg, title: title });
+    const customConfirm = (msg, title = 'Konfirmasi') => showModal({ type: 'confirm', message: msg, title: title });
+    const customPrompt = (msg, def, title = 'Input', isCurrency = false) => showModal({ type: 'prompt', message: msg, defaultValue: def, title: title, isCurrency: isCurrency });
+
+    function setDefaultDate() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('trans-date').value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    function toggleAddWalletForm() {
+        const container = document.getElementById('add-wallet-container');
+        container.style.display = (container.style.display === 'none' || container.style.display === '') ? 'block' : 'none';
+    }
+
+    function toggleWalletMenu(id) {
+        document.querySelectorAll('.wallet-dropdown').forEach(el => {
+            if(el.id !== `w-menu-${id}`) el.style.display = 'none';
+        });
+        const menu = document.getElementById(`w-menu-${id}`);
+        menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    document.addEventListener('click', function(e) {
+        if(!e.target.closest('.wallet-menu-container')) {
+            document.querySelectorAll('.wallet-dropdown').forEach(el => el.style.display = 'none');
+        }
+    });
+
+    function updateCategoryOptions() {
+        const mainType = document.getElementById('trans-main-type').value;
+        const categorySelect = document.getElementById('trans-category');
+        categorySelect.innerHTML = ''; 
+
+        if (mainType === 'expense') {
+            categorySelect.innerHTML = `
+                <option value="Makanan">🍔 Makanan & Minuman</option>
+                <option value="Hiburan">🎬 Hiburan & Rekreasi</option>
+                <option value="Pendidikan">📚 Pendidikan / Kursus</option>
+                <option value="Belanja">🛒 Belanja Bulanan / Keperluan</option>
+                <option value="Transportasi">🚗 Transportasi / Bensin</option>
+                <option value="Tagihan">💡 Tagihan / Listrik / Operasional</option>
+                <option value="Cicilan" style="font-weight: bold;">💳 Pembayaran Cicilan / Hutang</option>
+                <option value="Kerugian Investasi" style="color:var(--danger); font-weight:bold;">📉 Kerugian Investasi (Cut Loss)</option>
+                <option value="Kesehatan">💊 Kesehatan / Medis</option>
+                <option value="Lainnya">💸 Pengeluaran Lain</option>
+            `;
+        } else if (mainType === 'income') {
+            categorySelect.innerHTML = `
+                <option value="Gaji">💰 Gaji / Omzet Bisnis</option>
+                <option value="Keuntungan Investasi" style="color:var(--success); font-weight:bold;">📈 Keuntungan Investasi (Profit/Dividen)</option>
+                <option value="Lainnya">💵 Pemasukan Lain-lain</option>
+            `;
+        } else if (mainType === 'debt') {
+            categorySelect.innerHTML = `
+                <option value="Pinjaman Bank">🏦 Pinjaman Bank / KTA</option>
+                <option value="Kartu Kredit">💳 Paylater / Kartu Kredit</option>
+                <option value="Pinjaman Pribadi">🤝 Pinjaman Teman / Keluarga</option>
+            `;
+        } else if (mainType === 'transfer') {
+            categorySelect.innerHTML = `
+                <option value="Mutasi">🔄 Mutasi Kas (Tarik / Setor Tunai)</option>
+                <option value="Investasi">🏦 Top Up Portofolio (Beli Saham/Reksa Dana)</option>
+            `;
+        }
+        toggleTransferFields();
+    }
+
+    function generateDynamicFilters() {
+        const timeFilter = document.getElementById('time-filter');
+        const catFilter = document.getElementById('category-filter');
+        
+        let currentTimeVal = timeFilter.value || 'this_month';
+        const currentCatVal = catFilter.value || 'all';
+
+        let monthsSet = new Set();
+        transactions.forEach(t => {
+            const d = new Date(t.timestamp || t.id);
+            monthsSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+        });
+
+        let sortedMonths = Array.from(monthsSet).sort((a,b) => b.localeCompare(a));
+        
+        let timeOptions = `
+            <option value="this_month">📅 Bulan Ini</option>
+            <option value="last_month">📅 1 Bulan yang Lalu</option>
+            <option value="last_3_months">📊 3 Bulan Terakhir</option>
+            <option value="last_6_months">📊 6 Bulan Terakhir</option>
+            <option value="ytd">📈 Tahun Ini (YTD)</option>
+            <option value="all">📊 Semua Waktu (All Time)</option>
+        `;
+        
+        if (sortedMonths.length > 0) {
+            timeOptions += `<optgroup label="Histori Per Bulan (Spesifik)">`;
+            sortedMonths.forEach(mStr => {
+                const [y, m] = mStr.split('-');
+                const dLabel = new Date(y, m - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                timeOptions += `<option value="${mStr}">🗓️ ${dLabel}</option>`;
+            });
+            timeOptions += `</optgroup>`;
+        }
+        
+        timeFilter.innerHTML = timeOptions;
+
+        if(timeFilter.querySelector(`option[value="${currentTimeVal}"]`)) {
+            timeFilter.value = currentTimeVal;
+        } else {
+            timeFilter.value = 'this_month'; 
+        }
+
+        let catOptions = `<option value="all">Kategori: Semua</option>`;
+        let catSet = new Set();
+        transactions.forEach(t => catSet.add(t.category));
+        
+        Array.from(catSet).sort().forEach(c => {
+            catOptions += `<option value="${c}">${c}</option>`;
+        });
+        catFilter.innerHTML = catOptions;
+        if(catFilter.querySelector(`option[value="${currentCatVal}"]`)) catFilter.value = currentCatVal;
+    }
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+        applyFilter(); 
+    }
+
+    function getFilteredTransactions() {
+        const timeVal = document.getElementById('time-filter').value;
+        const catVal = document.getElementById('category-filter').value;
+
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        return transactions.filter(t => {
+            const tDate = new Date(t.timestamp || t.id); 
+            const tMonth = tDate.getMonth();
+            const tYear = tDate.getFullYear();
+
+            if (catVal !== 'all' && t.category !== catVal) return false;
+
+            if (timeVal === 'this_month') {
+                if (tMonth !== currentMonth || tYear !== currentYear) return false;
+            } else if (timeVal === 'last_month') {
+                let lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                let lastYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                if (tMonth !== lastMonth || tYear !== lastYear) return false;
+            } else if (timeVal === 'last_3_months') {
+                let d = new Date(); d.setMonth(now.getMonth() - 3); 
+                if (tDate < d) return false;
+            } else if (timeVal === 'last_6_months') {
+                let d = new Date(); d.setMonth(now.getMonth() - 6); 
+                if (tDate < d) return false;
+            } else if (timeVal === 'ytd') {
+                if (tYear !== currentYear) return false;
+            } else if (timeVal !== 'all') {
+                const parts = timeVal.split('-');
+                if (parts.length === 2) {
+                     const y = parseInt(parts[0]);
+                     const m = parseInt(parts[1]) - 1;
+                     if (tYear !== y || tMonth !== m) return false;
+                }
+            }
+            
+            return true; 
+        });
+    }
+
+    function applyFilter() {
+        renderTransactions();
+        calculateCashflow();
+    }
+
+    function updateSummaries() {
+        let totalCash = 0; let totalInvest = 0;
+        wallets.forEach(w => {
+            if (w.type === 'invest') totalInvest += w.balance;
+            else totalCash += w.balance;
+        });
+        document.getElementById('sum-total').innerText = formatRp(totalCash + totalInvest);
+        document.getElementById('sum-cash').innerText = formatRp(totalCash);
+        document.getElementById('sum-invest').innerText = formatRp(totalInvest);
+    }
+
+    function renderWallets() {
+        const list = document.getElementById('wallet-list');
+        const selectSingle = document.getElementById('trans-wallet');
+        const selectFrom = document.getElementById('trans-from');
+        const selectTo = document.getElementById('trans-to');
+        
+        list.innerHTML = ''; selectSingle.innerHTML = ''; selectFrom.innerHTML = ''; selectTo.innerHTML = '';
+
+        wallets.forEach(w => {
+            const typeClass = w.type === 'invest' ? 'invest-type' : 'cash-type';
+            const typeLabel = w.type === 'invest' ? 'Investasi' : 'Kas & Bank';
+            
+            list.innerHTML += `
+                <div class="wallet-item ${typeClass}">
+                    <div class="w-info">
+                        <h4>${w.name}</h4>
+                        <p>${typeLabel}</p>
+                    </div>
+                    <div class="w-balance">
+                        <span class="w-balance-val">${formatRp(w.balance)}</span>
+                        <div class="wallet-menu-container">
+                            <button onclick="toggleWalletMenu(${w.id})" class="btn-option">Opsi ▼</button>
+                            <div id="w-menu-${w.id}" class="wallet-dropdown" style="display:none;">
+                                <button onclick="editWalletName(${w.id}); toggleWalletMenu(${w.id})">✏️ Ubah Nama</button>
+                                <button onclick="editWalletBalance(${w.id}); toggleWalletMenu(${w.id})">⚙️ Koreksi Saldo</button>
+                                <button onclick="deleteWallet(${w.id}); toggleWalletMenu(${w.id})" style="color:var(--danger);">🗑️ Hapus Akun</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const option = `<option value="${w.id}">${w.name}</option>`;
+            selectSingle.innerHTML += option; selectFrom.innerHTML += option; selectTo.innerHTML += option;
+        });
+        updateSummaries();
+    }
+
+    async function editWalletBalance(id) {
+        let w = wallets.find(wallet => wallet.id === id);
+        if (w) {
+            let newBalanceStr = await customPrompt(`Masukkan saldo aktual untuk dompet '${w.name}':`, w.balance.toString(), 'Koreksi Saldo', true);
+            if (newBalanceStr !== null && newBalanceStr.trim() !== "") {
+                let newBalance = parseCurrencyValue(newBalanceStr);
+                if (!isNaN(newBalance) && newBalance !== w.balance) {
+                    let diff = newBalance - w.balance; 
+                    w.balance = newBalance;
+                    
+                    const dateObj = new Date();
+                    const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    
+                    transactions.push({
+                        id: Date.now(), timestamp: dateObj.getTime(), date: dateStr,
+                        desc: 'Koreksi Saldo Manual',
+                        mainType: 'adjustment',
+                        category: diff > 0 ? 'Koreksi (+)' : 'Koreksi (-)',
+                        amount: Math.abs(diff), walletName: w.name, walletId: w.id
+                    });
+                    
+                    saveData();
+                    customAlert(`Saldo ${w.name} berhasil diperbarui.\nSelisih otomatis tercatat sebagai penyesuaian di riwayat.`, 'Sukses');
+                }
+            }
+        }
+    }
+
+    async function editWalletName(id) {
+        let w = wallets.find(wallet => wallet.id === id);
+        if (w) {
+            let newName = await customPrompt(`Ubah nama untuk dompet '${w.name}':`, w.name, 'Ganti Nama', false);
+            if (newName && newName.trim() !== "") { w.name = newName.trim(); saveData(); }
+        }
+    }
+
+    async function deleteWallet(id) {
+        let w = wallets.find(wallet => wallet.id === id);
+        if(!w) return;
+
+        if(w.balance !== 0) {
+            await customAlert(`Dompet [${w.name}] tidak bisa dihapus karena masih ada saldo ${formatRp(w.balance)}.\nKosongkan saldonya terlebih dahulu.`, 'Gagal Menghapus');
+            return;
+        }
+
+        let isConfirm = await customConfirm(`Yakin ingin menghapus dompet [${w.name}]?`, 'Hapus Dompet');
+        if(isConfirm) {
+            wallets = wallets.filter(wallet => wallet.id !== id);
+            saveData();
+        }
+    }
+
+    function toggleTransferFields() {
+        const mainType = document.getElementById('trans-main-type').value;
+        const labelSingle = document.getElementById('wallet-field-label');
+
+        if (mainType === 'transfer') {
+            document.getElementById('single-wallet-field').style.display = 'none';
+            document.getElementById('transfer-fields').style.display = 'block';
+        } else {
+            document.getElementById('single-wallet-field').style.display = 'block';
+            document.getElementById('transfer-fields').style.display = 'none';
+            
+            if (mainType === 'expense') labelSingle.innerText = 'Gunakan Uang Dari Dompet Mana?';
+            else if (mainType === 'income') labelSingle.innerText = 'Simpan Uang Masuk Ke Dompet Mana?';
+            else if (mainType === 'debt') labelSingle.innerText = 'Uang Hutang Masuk Ke Dompet Mana?';
+        }
+    }
+
+    async function addWallet() {
+        const name = document.getElementById('new-wallet-name').value;
+        const type = document.getElementById('new-wallet-type').value;
+        const initialBalance = parseCurrencyValue(document.getElementById('new-wallet-balance').value);
+        
+        if (!name) {
+            await customAlert('Nama akun tidak boleh kosong!', 'Input Tidak Valid');
+            return;
+        }
+        
+        const newId = Date.now();
+        wallets.push({ id: newId, name: name, balance: initialBalance, type: type });
+
+        if (initialBalance > 0) {
+            const dateObj = new Date();
+            const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            transactions.push({
+                id: Date.now() + 1, timestamp: dateObj.getTime(), date: dateStr,
+                desc: 'Saldo Awal Akun', mainType: 'adjustment', category: 'Saldo Awal', 
+                amount: initialBalance, walletName: name, walletId: newId
+            });
+        }
+
+        saveData(); 
+        document.getElementById('new-wallet-name').value = '';
+        document.getElementById('new-wallet-balance').value = '';
+        document.getElementById('add-wallet-container').style.display = 'none';
+    }
+
+    async function addTransaction() {
+        const dateInput = document.getElementById('trans-date').value;
+        const mainType = document.getElementById('trans-main-type').value;
+        const category = document.getElementById('trans-category').value;
+        const desc = document.getElementById('trans-desc').value;
+        const amount = parseCurrencyValue(document.getElementById('trans-amount').value);
+        
+        if (!dateInput) return await customAlert('Tanggal wajib diisi!', 'Data Tidak Lengkap');
+        if (!desc || !amount || amount <= 0) return await customAlert('Keterangan dan nominal wajib diisi dengan benar!', 'Data Tidak Lengkap');
+
+        const dateVals = dateInput.split('-');
+        const dateObj = new Date(dateVals[0], dateVals[1] - 1, dateVals[2]);
+        const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timeStamp = dateObj.getTime(); 
+        const uniqueId = Date.now(); 
+
+        if (mainType === 'transfer') {
+            const fromId = parseInt(document.getElementById('trans-from').value);
+            const toId = parseInt(document.getElementById('trans-to').value);
+            if (fromId === toId) return await customAlert('Pilih dompet yang berbeda!', 'Mutasi Gagal');
+
+            let wFrom = wallets.find(w => w.id === fromId);
+            let wTo = wallets.find(w => w.id === toId);
+
+            if (!wFrom || !wTo) return await customAlert('Dompet tidak ditemukan!', 'Error');
+            if (wFrom.balance < amount) return await customAlert(`Saldo di [${wFrom.name}] tidak cukup.`, 'Saldo Kurang');
+
+            wFrom.balance -= amount; wTo.balance += amount;
+            transactions.push({ id: uniqueId, timestamp: timeStamp, date: dateStr, desc, mainType, category, amount, walletName: `${wFrom.name} ➔ ${wTo.name}`, fromId: wFrom.id, toId: wTo.id });
+
+        } else {
+            const walletId = parseInt(document.getElementById('trans-wallet').value);
+            let w = wallets.find(w => w.id === walletId);
+            
+            if (!w) return await customAlert('Dompet tidak ditemukan!', 'Error');
+            
+            if (mainType === 'expense' && w.balance < amount) {
+                return await customAlert(`Saldo di [${w.name}] tidak cukup untuk pengeluaran/kerugian ini.`, 'Saldo Kurang');
+            }
+
+            if (mainType === 'income' || mainType === 'debt') w.balance += amount;
+            if (mainType === 'expense') w.balance -= amount;
+
+            transactions.push({ id: uniqueId, timestamp: timeStamp, date: dateStr, desc, mainType, category, amount, walletName: w.name, walletId: w.id });
+        }
+
+        document.getElementById('trans-desc').value = ''; document.getElementById('trans-amount').value = '';
+        saveData();
+    }
+
+    function renderTransactions() {
+        const tbody = document.getElementById('transaction-list');
+        tbody.innerHTML = '';
+        
+        const filteredTrans = getFilteredTransactions();
+        const sortedTrans = [...filteredTrans].sort((a, b) => {
+            let timeA = a.timestamp || a.id;
+            let timeB = b.timestamp || b.id;
+            return timeB - timeA; 
+        });
+
+        if(sortedTrans.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding: 25px;">Tidak ada transaksi sesuai filter yang dipilih.</td></tr>`;
+            return;
+        }
+
+        sortedTrans.forEach(t => {
+            let badgeClass = ''; let valColor = ''; let trackPrefix = '';
+            
+            if (t.mainType === 'income') { 
+                badgeClass = 'bg-green'; valColor = 'color: var(--success);'; trackPrefix = '📥 '; 
+            } 
+            else if (t.mainType === 'expense') { 
+                badgeClass = 'bg-red'; valColor = 'color: var(--danger);'; trackPrefix = '📤 '; 
+            } 
+            else if (t.mainType === 'debt') {
+                badgeClass = 'bg-purple'; valColor = 'color: var(--purple);'; trackPrefix = '💳 ';
+            }
+            else if (t.mainType === 'adjustment') {
+                badgeClass = 'bg-gray'; 
+                valColor = t.category === 'Koreksi (+)' || t.category === 'Saldo Awal' ? 'color: var(--success);' : 'color: var(--danger);'; 
+                trackPrefix = '⚙️ ';
+            }
+            else { 
+                badgeClass = 'bg-blue'; valColor = 'color: var(--text-main);'; trackPrefix = '🔄 '; 
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">${t.date}</td>
+                    <td class="text-bold">${t.desc}</td>
+                    <td><span class="badge ${badgeClass}">${t.category}</span></td>
+                    <td style="font-size: 0.9rem; font-weight: 500; color: var(--primary);">${trackPrefix}${t.walletName}</td>
+                    <td class="text-bold" style="${valColor}">${formatRp(t.amount)}</td>
+                    <td><button onclick="deleteTransaction(${t.id})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 1rem;" title="Hapus">❌</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    function calculateCashflow() {
+        const filteredTrans = getFilteredTransactions();
+        const expenseContainer = document.getElementById('cashflow-expense-list');
+        const incomeContainer = document.getElementById('cashflow-income-list');
+        const debtContainer = document.getElementById('cashflow-debt-list');
+        
+        expenseContainer.innerHTML = ''; incomeContainer.innerHTML = ''; debtContainer.innerHTML = '';
+
+        let globalDebtTaken = 0;
+        let globalDebtPaid = 0;
+        transactions.forEach(t => {
+            if (t.mainType === 'debt') globalDebtTaken += t.amount;
+            if (t.mainType === 'expense' && t.category === 'Cicilan') globalDebtPaid += t.amount;
+        });
+        const outstandingDebt = Math.max(0, globalDebtTaken - globalDebtPaid);
+
+        let summary = {};
+        let totalIncome = 0; let totalExpense = 0; 
+        let currentPeriodDebtPaid = 0; let currentPeriodDebtTaken = 0;
+
+        filteredTrans.forEach(t => {
+            if (t.mainType === 'adjustment') return; 
+
+            if (t.mainType === 'income' || t.mainType === 'expense' || t.mainType === 'debt') {
+                let key = `${t.mainType}-${t.category}`;
+                summary[key] = (summary[key] || 0) + t.amount;
+                
+                if(t.mainType === 'income') totalIncome += t.amount;
+                if(t.mainType === 'expense') {
+                    totalExpense += t.amount;
+                    if (t.category === 'Cicilan') currentPeriodDebtPaid += t.amount;
+                }
+                if(t.mainType === 'debt') currentPeriodDebtTaken += t.amount;
+            } 
+            else if (t.mainType === 'transfer' && t.category === 'Investasi') {
+                let key = `expense-${t.category}`;
+                summary[key] = (summary[key] || 0) + t.amount;
+                totalExpense += t.amount; 
+            }
+        });
+
+        document.getElementById('metric-income').innerText = formatRp(totalIncome);
+        document.getElementById('metric-expense').innerText = formatRp(totalExpense);
+        
+        const net = totalIncome + currentPeriodDebtTaken - totalExpense;
+        const netEl = document.getElementById('metric-net');
+        netEl.innerText = formatRp(net);
+        netEl.style.color = net < 0 ? 'var(--danger)' : (net > 0 ? 'var(--success)' : 'var(--accent)');
+
+        const outDebtEl = document.getElementById('metric-outstanding-debt');
+        const outDebtBox = document.getElementById('outstanding-debt-box');
+        outDebtEl.innerText = formatRp(outstandingDebt);
+        
+        if (outstandingDebt === 0) {
+            outDebtEl.style.color = 'var(--success)';
+            outDebtBox.style.borderColor = 'var(--success)';
+            outDebtBox.style.background = '#f0fdf4';
+        } else {
+            outDebtEl.style.color = 'var(--purple)';
+            outDebtBox.style.borderColor = 'var(--purple)';
+            outDebtBox.style.background = '#f5f3ff';
+        }
+
+        document.getElementById('debt-detail').innerText = `Diambil: ${formatRp(currentPeriodDebtTaken)} | Dibayar: ${formatRp(currentPeriodDebtPaid)}`;
+
+        const ratioEl = document.getElementById('metric-ratio');
+        const ratioBox = document.getElementById('ratio-box');
+        const ratioDesc = document.getElementById('ratio-desc');
+
+        if (totalIncome > 0) {
+            const ratio = ((currentPeriodDebtPaid / totalIncome) * 100).toFixed(1);
+            ratioEl.innerText = ratio + '%';
+            
+            if (ratio > 40) {
+                ratioBox.style.borderColor = 'var(--danger)'; ratioBox.style.backgroundColor = '#fef2f2';
+                ratioEl.style.color = 'var(--danger)'; ratioDesc.style.color = 'var(--danger)';
+                ratioDesc.innerText = '⚠️ Berisiko (>40%)';
+            } else if (ratio > 0) {
+                ratioBox.style.borderColor = 'var(--warning)'; ratioBox.style.backgroundColor = '#fffbeb';
+                ratioEl.style.color = 'var(--warning)'; ratioDesc.style.color = 'var(--warning)';
+                ratioDesc.innerText = 'Batas Wajar';
+            } else {
+                ratioBox.style.borderColor = 'var(--success)'; ratioBox.style.backgroundColor = '#f0fdf4';
+                ratioEl.style.color = 'var(--success)'; ratioDesc.style.color = 'var(--success)';
+                ratioDesc.innerText = 'Sangat Sehat';
+            }
+        } else {
+            if (currentPeriodDebtPaid > 0) {
+                ratioEl.innerText = '⚠️ Bahaya';
+                ratioBox.style.borderColor = 'var(--danger)'; ratioBox.style.backgroundColor = '#fef2f2';
+                ratioDesc.innerText = 'Cicilan tanpa Pemasukan!';
+                ratioEl.style.color = 'var(--danger)';
+            } else {
+                ratioEl.innerText = '0%';
+                ratioBox.style.borderColor = 'var(--success)'; ratioBox.style.backgroundColor = '#f0fdf4';
+                ratioDesc.innerText = 'Sehat';
+                ratioEl.style.color = 'var(--success)';
+            }
+        }
+
+        let expenseCats = [];
+        for(let key in summary) {
+            if(key.startsWith('expense-')) expenseCats.push({ name: key.replace('expense-',''), amount: summary[key] });
+        }
+        
+        let expCount = 0;
+        expenseCats.sort((a, b) => b.amount - a.amount).forEach(c => {
+            let percentage = totalExpense > 0 ? ((c.amount / totalExpense) * 100).toFixed(1) : 0;
+            let itemHtml = `
+                <div class="flow-item">
+                    <div class="flow-header">
+                        <span class="flow-category">${c.name}</span>
+                        <span class="flow-amount" style="color: var(--danger)">${formatRp(c.amount)} <span style="font-size:0.8rem; color:var(--text-muted);">(${percentage}%)</span></span>
+                    </div>
+                    <div class="flow-bar-bg">
+                        <div class="flow-bar-fill" style="width: ${percentage}%; background-color: var(--danger);"></div>
+                    </div>
+                </div>
+            `;
+            expenseContainer.innerHTML += itemHtml; 
+            expCount++;
+        });
+        if(expCount === 0) expenseContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Tidak ada pengeluaran.</p>';
+
+        let incCount = 0;
+        for(let key in summary) {
+            if(key.startsWith('income-')) {
+                let name = key.replace('income-','');
+                incomeContainer.innerHTML += `<div class="flow-item" style="border-bottom: 1px solid #f1f5f9; padding: 12px 0;"><div style="display:flex; justify-content:space-between;"><span class="flow-category">${name}</span><span class="flow-amount" style="color: var(--success)">${formatRp(summary[key])}</span></div></div>`;
+                incCount++;
+            }
+        }
+        if(incCount === 0) incomeContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Tidak ada pemasukan.</p>';
+
+        let debtCount = 0;
+        for(let key in summary) {
+            if(key.startsWith('debt-')) {
+                let name = key.replace('debt-','');
+                debtContainer.innerHTML += `<div class="flow-item" style="border-bottom: 1px solid #f1f5f9; padding: 12px 0;"><div style="display:flex; justify-content:space-between;"><span class="flow-category">${name}</span><span class="flow-amount" style="color: var(--purple)">${formatRp(summary[key])}</span></div></div>`;
+                debtCount++;
+            }
+        }
+        if(debtCount === 0) debtContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Bersih! Tidak ada pinjaman diambil.</p>';
+
+        // CEK INSTABILITAS CDN CHART.JS SEBELUM RENDERING GRAPH
+        if (typeof Chart !== 'undefined') {
+            renderChart(totalIncome, totalExpense, currentPeriodDebtTaken);
+        } else {
+            console.warn("Chart.js gagal dimuat dari CDN. Grafik dinonaktifkan sementara.");
+        }
+    }
+
+    function renderChart(totalIncome, totalExpense, currentPeriodDebtTaken) {
+        const ctx = document.getElementById('cashflowChart').getContext('2d');
+        if (myChart) myChart.destroy(); 
+
+        if(totalIncome === 0 && totalExpense === 0 && currentPeriodDebtTaken === 0) {
+            myChart = new Chart(ctx, {
+                type: 'pie',
+                data: { labels: ['Belum ada data'], datasets: [{ data: [1], backgroundColor: ['#e2e8f0'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false }, legend: { position: 'bottom' } } }
+            });
+            return;
+        }
+
+        myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Pemasukan Murni', 'Pengeluaran', 'Hutang Diambil'],
+                datasets: [{
+                    data: [totalIncome, totalExpense, currentPeriodDebtTaken],
+                    backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
+                    borderWidth: 2, borderColor: '#ffffff', hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter' } } } }
+            }
+        });
+    }
+
+    async function deleteTransaction(id) {
+        let isConfirm = await customConfirm("Hapus transaksi ini? Saldo dompet akan dikembalikan otomatis.", "Konfirmasi Hapus");
+        if(!isConfirm) return;
+
+        const tIndex = transactions.findIndex(t => t.id === id);
+        const t = transactions[tIndex];
+
+        if (t.mainType === 'transfer') {
+            let wFrom = wallets.find(w => w.id === t.fromId);
+            let wTo = wallets.find(w => w.id === t.toId);
+            if (wFrom) wFrom.balance += t.amount;
+            if (wTo) wTo.balance -= t.amount;
+        } else if (t.mainType === 'adjustment') {
+            let w = wallets.find(w => w.id === t.walletId);
+            if (w) {
+                if (t.category === 'Koreksi (+)' || t.category === 'Saldo Awal') w.balance -= t.amount;
+                else w.balance += t.amount;
+            }
+        } else {
+            let w = wallets.find(w => w.id === t.walletId);
+            if (w) {
+                if (t.mainType === 'income' || t.mainType === 'debt') w.balance -= t.amount;
+                if (t.mainType === 'expense') w.balance += t.amount;
+            }
+        }
+
+        transactions.splice(tIndex, 1);
+        saveData();
+    }
+
+    function saveData() {
+        localStorage.setItem('keuangan_wallets28', JSON.stringify(wallets));
+        localStorage.setItem('keuangan_transactions28', JSON.stringify(transactions));
+        generateDynamicFilters(); 
+        renderWallets(); applyFilter();
+    }
+
+    setDefaultDate();
+    updateCategoryOptions(); 
+    generateDynamicFilters();
+    renderWallets(); 
+    applyFilter();
+</script>
+
+</body>
+</html>
