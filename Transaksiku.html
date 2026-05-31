@@ -32,15 +32,8 @@
             transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
         }
         #splash-screen.hidden { opacity: 0; visibility: hidden; }
-        .splash-logo { 
-            width: 280px; max-width: 80%; 
-            animation: pulseLogo 2s infinite ease-in-out; 
-        }
-        @keyframes pulseLogo {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+        .splash-logo { width: 280px; max-width: 80%; animation: pulseLogo 2s infinite ease-in-out; }
+        @keyframes pulseLogo { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         /* Header & Summaries */
         .header-title { text-align: left; margin-bottom: 20px; color: var(--primary); }
@@ -50,7 +43,7 @@
         .summary-card.cash { background: linear-gradient(135deg, #3b82f6, #2563eb); }
         .summary-card.invest { background: linear-gradient(135deg, #10b981, #059669); }
         .summary-card p { font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px; }
-        .summary-card h2 { font-size: 1.6rem; letter-spacing: -0.5px; margin: 0;}
+        .summary-card h2 { font-size: 1.6rem; letter-spacing: -0.5px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 
         /* Main Content Grid & Mobile Layout */
         .main-grid { display: flex; gap: 25px; margin-bottom: 30px; }
@@ -61,7 +54,6 @@
             .main-grid { flex-direction: column; }
             .form-panel { order: 2; } 
             .wallet-panel { order: 1; margin-bottom: 0px; } 
-            
             .summary-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
             .summary-card { padding: 15px; border-radius: 12px; }
             .summary-card h2 { font-size: 1.2rem; }
@@ -89,10 +81,7 @@
             border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100;
             display: flex; flex-direction: column; min-width: 160px; overflow: hidden;
         }
-        .wallet-dropdown button {
-            background: none; border: none; padding: 12px 15px; text-align: left; width: 100%;
-            cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; border-radius: 0;
-        }
+        .wallet-dropdown button { background: none; border: none; padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; border-radius: 0; }
         .wallet-dropdown button:hover { background: #f8fafc; }
 
         /* Forms & Inputs */
@@ -145,16 +134,22 @@
         .metrics-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
         .metric-box { padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; background: #f8fafc; transition: all 0.3s; }
         .metric-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; line-height: 1.3; }
-        .metric-box h3 { border: none; padding: 0; margin: 0; font-size: 1.4rem; word-break: break-word; }
         
-        /* OPTIMASI METRIK UNTUK HP - Berjejer 3 dan 2 */
+        /* ANTI-WRAP CSS UNTUK ANGKA */
+        .metric-box h3 { 
+            border: none; padding: 0; margin: 0; font-size: 1.3rem; 
+            white-space: nowrap; overflow-x: auto; scrollbar-width: none;
+        }
+        .metric-box h3::-webkit-scrollbar { display: none; } /* Hide scrollbar for Chrome/Safari */
+        
+        /* OPTIMASI METRIK UNTUK HP - Berjejer 3 dan 2 tanpa turun ke bawah */
         @media (max-width: 768px) {
-            .metrics-grid-3 { gap: 6px; margin-bottom: 10px; }
-            .metrics-grid-2 { gap: 6px; margin-bottom: 20px; }
-            .metric-box { padding: 10px 5px; border-radius: 8px;}
-            .metric-box p { font-size: 0.65rem; margin-bottom: 3px; }
-            .metric-box h3 { font-size: 0.95rem; }
-            #debt-detail, #ratio-desc { font-size: 0.6rem !important; margin-top: 2px !important; }
+            .metrics-grid-3 { gap: 5px; margin-bottom: 10px; }
+            .metrics-grid-2 { gap: 5px; margin-bottom: 20px; }
+            .metric-box { padding: 10px 4px; border-radius: 8px;}
+            .metric-box p { font-size: 0.65rem; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .metric-box h3 { font-size: 0.85rem; }
+            #debt-detail, #ratio-desc { font-size: 0.6rem !important; margin-top: 2px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         }
         
         /* Item Rincian Laporan */
@@ -186,10 +181,12 @@
 </head>
 <body>
 
+<!-- LAYAR SPLASH / LOADING -->
 <div id="splash-screen">
     <img src="Logo Transaksiku.png" alt="Transaksiku Logo" class="splash-logo">
 </div>
 
+<!-- Modal UI (Popup Alert) -->
 <div id="custom-modal" class="modal-overlay">
     <div class="modal-box">
         <h3 id="modal-title">Perhatian</h3>
@@ -208,6 +205,7 @@
         <p style="color: var(--text-muted);">Manajemen arus kas, aset, dan investasi pribadi.</p>
     </div>
 
+    <!-- Ringkasan Saldo Utama -->
     <div class="summary-grid">
         <div class="summary-card total">
             <p>Total Aset & Kekayaan</p>
@@ -224,6 +222,8 @@
     </div>
 
     <div class="main-grid">
+        
+        <!-- Panel Daftar Dompet (Order 1 di HP) -->
         <div class="wallet-panel">
             <div class="card">
                 <h3>Daftar Akun & Portofolio</h3>
@@ -256,6 +256,7 @@
             </div>
         </div>
 
+        <!-- Panel Form Transaksi -->
         <div class="form-panel">
             <div class="card">
                 <h3>Catat Transaksi Baru</h3>
@@ -311,8 +312,10 @@
                 <button onclick="addTransaction()" class="btn btn-primary">Simpan Transaksi</button>
             </div>
         </div>
+
     </div>
 
+    <!-- Panel Menu Laporan Bawah -->
     <div class="card">
         <div class="tabs-header">
             <div class="tabs">
@@ -326,6 +329,7 @@
             </div>
         </div>
 
+        <!-- Konten Tab Riwayat -->
         <div id="tab-history" class="tab-content active">
             <div class="table-container">
                 <table>
@@ -344,32 +348,35 @@
             </div>
         </div>
 
+        <!-- Konten Tab Analisis Arus Kas -->
         <div id="tab-cashflow" class="tab-content">
+            <!-- Grid 3 Berjejer: Teks Dipersingkat agar muat di HP -->
             <div class="metrics-grid-3">
                 <div class="metric-box">
-                    <p>Pemasukan (Periode Ini)</p>
+                    <p>Pemasukan</p>
                     <h3 id="metric-income" style="color: var(--success);">Rp 0</h3>
                 </div>
                 <div class="metric-box">
-                    <p>Pengeluaran (Periode Ini)</p>
+                    <p>Pengeluaran</p>
                     <h3 id="metric-expense" style="color: var(--danger);">Rp 0</h3>
                 </div>
                 <div class="metric-box" style="border: 2px solid var(--accent); background: #eff6ff;">
-                    <p>Sisa Arus Kas (Net)</p>
+                    <p>Arus Kas (Net)</p>
                     <h3 id="metric-net" style="color: var(--accent);">Rp 0</h3>
                 </div>
             </div>
 
+            <!-- Grid 2 Berjejer -->
             <div class="metrics-grid-2">
                 <div class="metric-box" id="outstanding-debt-box" style="border-color: var(--purple); background: #f5f3ff;">
-                    <p>Sisa Hutang Belum Lunas</p>
+                    <p>Sisa Total Hutang</p>
                     <h3 id="metric-outstanding-debt" style="color: var(--purple);">Rp 0</h3>
                     <p id="debt-detail" style="font-size: 0.75rem; margin-top: 5px; color: var(--text-muted);">
                         Diambil: 0 | Dibayar: 0
                     </p>
                 </div>
                 <div class="metric-box" id="ratio-box">
-                    <p>Beban Cicilan thd Pemasukan</p>
+                    <p>Beban Cicilan (DTI)</p>
                     <h3 id="metric-ratio">0%</h3>
                     <p id="ratio-desc" style="font-size: 0.75rem; margin-top: 5px;">Sangat Sehat</p>
                 </div>
@@ -403,22 +410,21 @@
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             splash.classList.add('hidden');
-            // Menghapus elemen dari DOM setelah animasi fade-out selesai agar tidak menutupi klik
             setTimeout(() => splash.style.display = 'none', 600);
-        }, 1500); // 1.5 detik tampil
+        }, 1500); 
     });
 
-    // Memigrasi data aman (Versi 27)
-    let wallets = JSON.parse(localStorage.getItem('keuangan_wallets27')) || 
-                  JSON.parse(localStorage.getItem('keuangan_wallets26')) || 
-                  JSON.parse(localStorage.getItem('keuangan_wallets25')) || [
+    // Memigrasi data aman
+    let wallets = JSON.parse(localStorage.getItem('keuangan_wallets28')) || 
+                  JSON.parse(localStorage.getItem('keuangan_wallets27')) || 
+                  JSON.parse(localStorage.getItem('keuangan_wallets26')) || [
         { id: 1, name: 'Dompet Tunai', balance: 500000, type: 'cash' },
         { id: 2, name: 'Rekening Bank', balance: 2500000, type: 'cash' },
         { id: 3, name: 'Portofolio Saham', balance: 0, type: 'invest' }
     ];
-    let transactions = JSON.parse(localStorage.getItem('keuangan_transactions27')) || 
-                       JSON.parse(localStorage.getItem('keuangan_transactions26')) || 
-                       JSON.parse(localStorage.getItem('keuangan_transactions25')) || [];
+    let transactions = JSON.parse(localStorage.getItem('keuangan_transactions28')) || 
+                       JSON.parse(localStorage.getItem('keuangan_transactions27')) || 
+                       JSON.parse(localStorage.getItem('keuangan_transactions26')) || [];
     let myChart = null;
 
     const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
@@ -542,13 +548,12 @@
                 <option value="Cicilan" style="font-weight: bold;">💳 Pembayaran Cicilan / Hutang</option>
                 <option value="Kerugian Investasi" style="color:var(--danger); font-weight:bold;">📉 Kerugian Investasi (Cut Loss)</option>
                 <option value="Kesehatan">💊 Kesehatan / Medis</option>
-                <option value="Lainnya">💸 Pengeluaran Lain / Penyesuaian</option>
+                <option value="Lainnya">💸 Pengeluaran Lain</option>
             `;
         } else if (mainType === 'income') {
             categorySelect.innerHTML = `
                 <option value="Gaji">💰 Gaji / Omzet Bisnis</option>
                 <option value="Keuntungan Investasi" style="color:var(--success); font-weight:bold;">📈 Keuntungan Investasi (Profit/Dividen)</option>
-                <option value="Modal">🏦 Modal Awal / Penyesuaian Saldo</option>
                 <option value="Lainnya">💵 Pemasukan Lain-lain</option>
             `;
         } else if (mainType === 'debt') {
@@ -581,7 +586,6 @@
 
         let sortedMonths = Array.from(monthsSet).sort((a,b) => b.localeCompare(a));
         
-        // MENGEMBALIKAN SEMUA OPSI FILTER DEFAULT
         let timeOptions = `
             <option value="this_month">📅 Bulan Ini</option>
             <option value="last_month">📅 1 Bulan yang Lalu</option>
@@ -644,7 +648,7 @@
             // Cek Kategori
             if (catVal !== 'all' && t.category !== catVal) return false;
 
-            // Cek Filter Waktu Utama
+            // Cek Waktu
             if (timeVal === 'this_month') {
                 if (tMonth !== currentMonth || tYear !== currentYear) return false;
             } else if (timeVal === 'last_month') {
@@ -660,7 +664,6 @@
             } else if (timeVal === 'ytd') {
                 if (tYear !== currentYear) return false;
             } else if (timeVal !== 'all') {
-                // Untuk Histori Spesifik format YYYY-MM
                 const parts = timeVal.split('-');
                 if (parts.length === 2) {
                     const y = parseInt(parts[0]);
@@ -727,6 +730,7 @@
         updateSummaries();
     }
 
+    // --- FITUR BARU KOREKSI SALDO (TERPISAH DARI LAPORAN ARUS KAS) ---
     async function editWalletBalance(id) {
         let w = wallets.find(wallet => wallet.id === id);
         if (w) {
@@ -740,16 +744,17 @@
                     const dateObj = new Date();
                     const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                     
+                    // Transaksi khusus dengan mainType: 'adjustment' agar tidak mengotori Laporan Kas
                     transactions.push({
                         id: Date.now(), timestamp: dateObj.getTime(), date: dateStr,
                         desc: 'Koreksi Saldo Manual',
-                        mainType: diff > 0 ? 'income' : 'expense',
-                        category: diff > 0 ? 'Modal' : 'Lainnya',
+                        mainType: 'adjustment',
+                        category: diff > 0 ? 'Koreksi (+)' : 'Koreksi (-)',
                         amount: Math.abs(diff), walletName: w.name, walletId: w.id
                     });
                     
                     saveData();
-                    customAlert(`Saldo ${w.name} berhasil diperbarui.\nSelisih otomatis tercatat di riwayat.`, 'Sukses');
+                    customAlert(`Saldo ${w.name} berhasil diperbarui.\nSelisih otomatis tercatat sebagai penyesuaian di riwayat.`, 'Sukses');
                 }
             }
         }
@@ -814,7 +819,7 @@
             const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
             transactions.push({
                 id: Date.now() + 1, timestamp: dateObj.getTime(), date: dateStr,
-                desc: 'Modal Awal', mainType: 'income', category: 'Modal',
+                desc: 'Saldo Awal Akun', mainType: 'adjustment', category: 'Saldo Awal', // Agar tidak masuk ke arus kas
                 amount: initialBalance, walletName: name, walletId: newId
             });
         }
@@ -880,7 +885,6 @@
         tbody.innerHTML = '';
         
         const filteredTrans = getFilteredTransactions();
-        
         const sortedTrans = [...filteredTrans].sort((a, b) => {
             let timeA = a.timestamp || a.id;
             let timeB = b.timestamp || b.id;
@@ -896,8 +900,7 @@
             let badgeClass = ''; let valColor = ''; let trackPrefix = '';
             
             if (t.mainType === 'income') { 
-                badgeClass = t.category === 'Modal' ? 'bg-yellow' : 'bg-green'; 
-                valColor = 'color: var(--success);'; trackPrefix = '📥 '; 
+                badgeClass = 'bg-green'; valColor = 'color: var(--success);'; trackPrefix = '📥 '; 
             } 
             else if (t.mainType === 'expense') { 
                 badgeClass = 'bg-red'; valColor = 'color: var(--danger);'; trackPrefix = '📤 '; 
@@ -905,8 +908,14 @@
             else if (t.mainType === 'debt') {
                 badgeClass = 'bg-purple'; valColor = 'color: var(--purple);'; trackPrefix = '💳 ';
             }
+            // Khusus Tampilan Adjustments (Koreksi Saldo)
+            else if (t.mainType === 'adjustment') {
+                badgeClass = 'bg-gray'; 
+                valColor = t.category === 'Koreksi (+)' || t.category === 'Saldo Awal' ? 'color: var(--success);' : 'color: var(--danger);'; 
+                trackPrefix = '⚙️ ';
+            }
             else { 
-                badgeClass = t.category === 'Mutasi' ? 'bg-gray' : 'bg-blue'; valColor = 'color: var(--text-main);'; trackPrefix = '🔄 '; 
+                badgeClass = 'bg-blue'; valColor = 'color: var(--text-main);'; trackPrefix = '🔄 '; 
             }
 
             tbody.innerHTML += `
@@ -943,6 +952,9 @@
         let currentPeriodDebtTaken = 0; let currentPeriodDebtPaid = 0;
 
         filteredTrans.forEach(t => {
+            // MENGABAIKAN mainType 'adjustment' SECARA TOTAL DARI ARUS KAS
+            if (t.mainType === 'adjustment') return; 
+
             if (t.mainType === 'income' || t.mainType === 'expense' || t.mainType === 'debt') {
                 let key = `${t.mainType}-${t.category}`;
                 summary[key] = (summary[key] || 0) + t.amount;
@@ -983,7 +995,7 @@
             outDebtBox.style.background = '#f5f3ff';
         }
 
-        document.getElementById('debt-detail').innerText = `Periode ini: Diambil ${formatRp(currentPeriodDebtTaken)} | Dibayar ${formatRp(currentPeriodDebtPaid)}`;
+        document.getElementById('debt-detail').innerText = `Diambil: ${formatRp(currentPeriodDebtTaken)} | Dibayar: ${formatRp(currentPeriodDebtPaid)}`;
 
         const ratioEl = document.getElementById('metric-ratio');
         const ratioBox = document.getElementById('ratio-box');
@@ -1062,7 +1074,7 @@
                 debtCount++;
             }
         }
-        if(debtCount === 0) debtContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Bersih! Tidak ada pinjaman diambil di periode ini.</p>';
+        if(debtCount === 0) debtContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Bersih! Tidak ada pinjaman diambil.</p>';
 
         renderChart(totalIncome, totalExpense, currentPeriodDebtTaken);
     }
@@ -1109,6 +1121,13 @@
             let wTo = wallets.find(w => w.id === t.toId);
             if (wFrom) wFrom.balance += t.amount;
             if (wTo) wTo.balance -= t.amount;
+        } else if (t.mainType === 'adjustment') {
+            // MENGEMBALIKAN SALDO DARI HASIL KOREKSI YANG DIHAPUS
+            let w = wallets.find(w => w.id === t.walletId);
+            if (w) {
+                if (t.category === 'Koreksi (+)' || t.category === 'Saldo Awal') w.balance -= t.amount;
+                else w.balance += t.amount;
+            }
         } else {
             let w = wallets.find(w => w.id === t.walletId);
             if (w) {
@@ -1122,8 +1141,8 @@
     }
 
     function saveData() {
-        localStorage.setItem('keuangan_wallets27', JSON.stringify(wallets));
-        localStorage.setItem('keuangan_transactions27', JSON.stringify(transactions));
+        localStorage.setItem('keuangan_wallets28', JSON.stringify(wallets));
+        localStorage.setItem('keuangan_transactions28', JSON.stringify(transactions));
         generateDynamicFilters(); 
         renderWallets(); applyFilter();
     }
