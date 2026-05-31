@@ -38,7 +38,10 @@
         }
 
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
-        body { background-color: var(--bg); color: var(--text-main); padding: 15px; line-height: 1.6; }
+        body { 
+            background-color: var(--bg); color: var(--text-main); padding: 15px; line-height: 1.6; 
+            -webkit-user-select: none; -ms-user-select: none; user-select: none; /* Cegah copy-paste global */
+        }
         .container { max-width: 1100px; margin: 0 auto; }
 
         /* SPLASH SCREEN STYLES */
@@ -93,7 +96,10 @@
         /* Forms & Inputs */
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
-        input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #f8fafc; font-family: 'Inter', sans-serif;}
+        input, select { 
+            width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #f8fafc; font-family: 'Inter', sans-serif;
+            -webkit-user-select: text; -ms-user-select: text; user-select: text; /* Izinkan ketik & seleksi di kolom form */
+        }
         input[type="date"] { cursor: pointer; }
         input:focus, select:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         
@@ -799,6 +805,36 @@
 </div>
 
 <script>
+    // ANTI-COPY & ANTI-INSPECT PROTECTION
+    document.addEventListener('contextmenu', e => e.preventDefault()); // Blokir klik kanan secara global
+    
+    document.addEventListener('keydown', function(e) {
+        // Blokir F12 (DevTools)
+        if (e.key === 'F12') {
+            e.preventDefault();
+        }
+        // Blokir Ctrl+Shift+I (Inspect), Ctrl+Shift+J (Console), Ctrl+Shift+C (Inspect Element)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'i' || e.key === 'j' || e.key === 'c')) {
+            e.preventDefault();
+        }
+        // Blokir Ctrl+U (View Source) dan Ctrl+S (Save Page)
+        if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+        }
+    });
+
+    // Blokir event copy & cut secara global kecuali di form input
+    document.addEventListener('copy', e => {
+        if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+        }
+    });
+    document.addEventListener('cut', e => {
+        if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+        }
+    });
+
     // Penanganan Splash Screen Aman
     window.addEventListener('load', () => {
         setTimeout(() => {
