@@ -1,7 +1,7 @@
 const CACHE_NAME = 'transaksiku-cache-v4';
 const ASSETS_TO_CACHE = [
   './',
-  './index.html',
+  './Transaksiku.html',
   './manifest.json',
   './logo.png',
   'https://cdn.jsdelivr.net/npm/chart.js'
