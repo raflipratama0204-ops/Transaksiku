@@ -123,11 +123,23 @@
         .tab-content.active { display: block; }
 
         /* Arus Kas List & Metrics */
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        .metric-box { padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; background: #f8fafc; }
-        .metric-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
-        .metric-box h3 { border: none; padding: 0; margin: 0; font-size: 1.4rem; }
+        .metrics-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
+        .metrics-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .metric-box { padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; background: #f8fafc; transition: all 0.3s; }
+        .metric-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; line-height: 1.3; }
+        .metric-box h3 { border: none; padding: 0; margin: 0; font-size: 1.4rem; word-break: break-word; }
         
+        /* OPTIMASI METRIK UNTUK HP - Berjejer 3 dan 2 */
+        @media (max-width: 768px) {
+            .metrics-grid-3 { gap: 6px; margin-bottom: 10px; }
+            .metrics-grid-2 { gap: 6px; margin-bottom: 20px; }
+            .metric-box { padding: 10px 5px; border-radius: 8px;}
+            .metric-box p { font-size: 0.65rem; margin-bottom: 3px; }
+            .metric-box h3 { font-size: 0.95rem; }
+            #debt-detail, #ratio-desc { font-size: 0.6rem !important; margin-top: 2px !important; }
+        }
+        
+        /* Item Rincian Laporan */
         .flow-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
         .flow-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
         .flow-category { font-weight: 600; font-size: 0.95rem; }
@@ -174,6 +186,7 @@
         <p style="color: var(--text-muted);">Manajemen arus kas, aset, dan investasi pribadi.</p>
     </div>
 
+    <!-- Ringkasan Saldo Utama -->
     <div class="summary-grid">
         <div class="summary-card total">
             <p>Total Aset & Kekayaan</p>
@@ -190,7 +203,7 @@
     </div>
 
     <div class="main-grid">
-        
+        <!-- Panel Daftar Dompet -->
         <div class="wallet-panel">
             <div class="card">
                 <h3>Daftar Akun & Portofolio</h3>
@@ -223,6 +236,7 @@
             </div>
         </div>
 
+        <!-- Panel Form Transaksi -->
         <div class="form-panel">
             <div class="card">
                 <h3>Catat Transaksi Baru</h3>
@@ -278,9 +292,9 @@
                 <button onclick="addTransaction()" class="btn btn-primary">Simpan Transaksi</button>
             </div>
         </div>
-
     </div>
 
+    <!-- Panel Menu Laporan Bawah -->
     <div class="card">
         <div class="tabs-header">
             <div class="tabs">
@@ -294,6 +308,7 @@
             </div>
         </div>
 
+        <!-- Konten Tab Riwayat -->
         <div id="tab-history" class="tab-content active">
             <div class="table-container">
                 <table>
@@ -312,8 +327,10 @@
             </div>
         </div>
 
+        <!-- Konten Tab Analisis Arus Kas -->
         <div id="tab-cashflow" class="tab-content">
-            <div class="metrics-grid">
+            <!-- Grid 3 Berjejer -->
+            <div class="metrics-grid-3">
                 <div class="metric-box">
                     <p>Pemasukan (Periode Ini)</p>
                     <h3 id="metric-income" style="color: var(--success);">Rp 0</h3>
@@ -323,17 +340,18 @@
                     <h3 id="metric-expense" style="color: var(--danger);">Rp 0</h3>
                 </div>
                 <div class="metric-box" style="border: 2px solid var(--accent); background: #eff6ff;">
-                    <p>Sisa Arus Kas (Periode Ini)</p>
+                    <p>Sisa Arus Kas (Net)</p>
                     <h3 id="metric-net" style="color: var(--accent);">Rp 0</h3>
                 </div>
             </div>
 
-            <div class="metrics-grid">
+            <!-- Grid 2 Berjejer -->
+            <div class="metrics-grid-2">
                 <div class="metric-box" id="outstanding-debt-box" style="border-color: var(--purple); background: #f5f3ff;">
-                    <p>Sisa Hutang Belum Lunas (Total)</p>
+                    <p>Sisa Hutang Belum Lunas</p>
                     <h3 id="metric-outstanding-debt" style="color: var(--purple);">Rp 0</h3>
                     <p id="debt-detail" style="font-size: 0.75rem; margin-top: 5px; color: var(--text-muted);">
-                        Periode ini: Diambil 0 | Dibayar 0
+                        Diambil: 0 | Dibayar: 0
                     </p>
                 </div>
                 <div class="metric-box" id="ratio-box">
@@ -366,17 +384,17 @@
 </div>
 
 <script>
-    // Memigrasi data aman (Versi 25)
-    let wallets = JSON.parse(localStorage.getItem('keuangan_wallets25')) || 
-                  JSON.parse(localStorage.getItem('keuangan_wallets24')) || 
-                  JSON.parse(localStorage.getItem('keuangan_wallets23')) || [
+    // Memigrasi data aman
+    let wallets = JSON.parse(localStorage.getItem('keuangan_wallets26')) || 
+                  JSON.parse(localStorage.getItem('keuangan_wallets25')) || 
+                  JSON.parse(localStorage.getItem('keuangan_wallets24')) || [
         { id: 1, name: 'Dompet Tunai', balance: 500000, type: 'cash' },
         { id: 2, name: 'Rekening Bank', balance: 2500000, type: 'cash' },
         { id: 3, name: 'Portofolio Saham', balance: 0, type: 'invest' }
     ];
-    let transactions = JSON.parse(localStorage.getItem('keuangan_transactions25')) || 
-                       JSON.parse(localStorage.getItem('keuangan_transactions24')) || 
-                       JSON.parse(localStorage.getItem('keuangan_transactions23')) || [];
+    let transactions = JSON.parse(localStorage.getItem('keuangan_transactions26')) || 
+                       JSON.parse(localStorage.getItem('keuangan_transactions25')) || 
+                       JSON.parse(localStorage.getItem('keuangan_transactions24')) || [];
     let myChart = null;
 
     const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
@@ -539,7 +557,6 @@
 
         let sortedMonths = Array.from(monthsSet).sort((a,b) => b.localeCompare(a));
         
-        // KEMBALIKAN SEMUA FILTER DEFAULT PLUS HISTORI BULAN
         let timeOptions = `
             <option value="this_month">📅 Bulan Ini</option>
             <option value="last_month">📅 1 Bulan yang Lalu</option>
@@ -618,7 +635,6 @@
             } else if (timeVal === 'ytd') {
                 if (tYear !== currentYear) return false;
             } else if (timeVal !== 'all') {
-                // Untuk format YYYY-MM spesifik
                 const parts = timeVal.split('-');
                 if (parts.length === 2) {
                     const y = parseInt(parts[0]);
@@ -838,7 +854,6 @@
         tbody.innerHTML = '';
         
         const filteredTrans = getFilteredTransactions();
-        
         const sortedTrans = [...filteredTrans].sort((a, b) => {
             let timeA = a.timestamp || a.id;
             let timeB = b.timestamp || b.id;
@@ -1080,8 +1095,8 @@
     }
 
     function saveData() {
-        localStorage.setItem('keuangan_wallets25', JSON.stringify(wallets));
-        localStorage.setItem('keuangan_transactions25', JSON.stringify(transactions));
+        localStorage.setItem('keuangan_wallets26', JSON.stringify(wallets));
+        localStorage.setItem('keuangan_transactions26', JSON.stringify(transactions));
         generateDynamicFilters(); 
         renderWallets(); applyFilter();
     }
