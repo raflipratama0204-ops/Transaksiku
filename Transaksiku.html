@@ -6,6 +6,14 @@
     <title>Transaksiku - Catatan Keuangan Pribadi</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="apple-touch-icon" href="Logo Transaksiku.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+
     <style>
         :root {
             --primary: #0f172a;
@@ -135,14 +143,12 @@
         .metric-box { padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; background: #f8fafc; transition: all 0.3s; }
         .metric-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; line-height: 1.3; }
         
-        /* ANTI-WRAP CSS UNTUK ANGKA */
         .metric-box h3 { 
             border: none; padding: 0; margin: 0; font-size: 1.3rem; 
             white-space: nowrap; overflow-x: auto; scrollbar-width: none;
         }
-        .metric-box h3::-webkit-scrollbar { display: none; } /* Hide scrollbar for Chrome/Safari */
+        .metric-box h3::-webkit-scrollbar { display: none; } 
         
-        /* OPTIMASI METRIK UNTUK HP - Berjejer 3 dan 2 tanpa turun ke bawah */
         @media (max-width: 768px) {
             .metrics-grid-3 { gap: 5px; margin-bottom: 10px; }
             .metrics-grid-2 { gap: 5px; margin-bottom: 20px; }
@@ -181,12 +187,10 @@
 </head>
 <body>
 
-<!-- LAYAR SPLASH / LOADING -->
 <div id="splash-screen">
     <img src="Logo Transaksiku.png" alt="Transaksiku Logo" class="splash-logo">
 </div>
 
-<!-- Modal UI (Popup Alert) -->
 <div id="custom-modal" class="modal-overlay">
     <div class="modal-box">
         <h3 id="modal-title">Perhatian</h3>
@@ -202,10 +206,9 @@
 <div class="container">
     <div class="header-title">
         <h1>Dashboard Keuangan</h1>
-        <p style="color: var(--text-muted);">Manajemen arus kas, aset, dan investasi pribadi.</p>
+        <p style="color: var(--text-muted);">Catat Transaksi Harianmu di Transaksiku</p>
     </div>
 
-    <!-- Ringkasan Saldo Utama -->
     <div class="summary-grid">
         <div class="summary-card total">
             <p>Total Aset & Kekayaan</p>
@@ -222,8 +225,6 @@
     </div>
 
     <div class="main-grid">
-        
-        <!-- Panel Daftar Dompet (Order 1 di HP) -->
         <div class="wallet-panel">
             <div class="card">
                 <h3>Daftar Akun & Portofolio</h3>
@@ -256,7 +257,6 @@
             </div>
         </div>
 
-        <!-- Panel Form Transaksi -->
         <div class="form-panel">
             <div class="card">
                 <h3>Catat Transaksi Baru</h3>
@@ -312,10 +312,8 @@
                 <button onclick="addTransaction()" class="btn btn-primary">Simpan Transaksi</button>
             </div>
         </div>
-
     </div>
 
-    <!-- Panel Menu Laporan Bawah -->
     <div class="card">
         <div class="tabs-header">
             <div class="tabs">
@@ -329,7 +327,6 @@
             </div>
         </div>
 
-        <!-- Konten Tab Riwayat -->
         <div id="tab-history" class="tab-content active">
             <div class="table-container">
                 <table>
@@ -348,9 +345,7 @@
             </div>
         </div>
 
-        <!-- Konten Tab Analisis Arus Kas -->
         <div id="tab-cashflow" class="tab-content">
-            <!-- Grid 3 Berjejer: Teks Dipersingkat agar muat di HP -->
             <div class="metrics-grid-3">
                 <div class="metric-box">
                     <p>Pemasukan</p>
@@ -366,7 +361,6 @@
                 </div>
             </div>
 
-            <!-- Grid 2 Berjejer -->
             <div class="metrics-grid-2">
                 <div class="metric-box" id="outstanding-debt-box" style="border-color: var(--purple); background: #f5f3ff;">
                     <p>Sisa Total Hutang</p>
@@ -405,7 +399,6 @@
 </div>
 
 <script>
-    // --- LOGIKA MENGHILANGKAN SPLASH SCREEN ---
     window.addEventListener('load', () => {
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
@@ -414,17 +407,12 @@
         }, 1500); 
     });
 
-    // Memigrasi data aman
-    let wallets = JSON.parse(localStorage.getItem('keuangan_wallets28')) || 
-                  JSON.parse(localStorage.getItem('keuangan_wallets27')) || 
-                  JSON.parse(localStorage.getItem('keuangan_wallets26')) || [
+    let wallets = JSON.parse(localStorage.getItem('keuangan_wallets28')) || [
         { id: 1, name: 'Dompet Tunai', balance: 500000, type: 'cash' },
         { id: 2, name: 'Rekening Bank', balance: 2500000, type: 'cash' },
         { id: 3, name: 'Portofolio Saham', balance: 0, type: 'invest' }
     ];
-    let transactions = JSON.parse(localStorage.getItem('keuangan_transactions28')) || 
-                       JSON.parse(localStorage.getItem('keuangan_transactions27')) || 
-                       JSON.parse(localStorage.getItem('keuangan_transactions26')) || [];
+    let transactions = JSON.parse(localStorage.getItem('keuangan_transactions28')) || [];
     let myChart = null;
 
     const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
@@ -645,10 +633,8 @@
             const tMonth = tDate.getMonth();
             const tYear = tDate.getFullYear();
 
-            // Cek Kategori
             if (catVal !== 'all' && t.category !== catVal) return false;
 
-            // Cek Waktu
             if (timeVal === 'this_month') {
                 if (tMonth !== currentMonth || tYear !== currentYear) return false;
             } else if (timeVal === 'last_month') {
@@ -730,7 +716,6 @@
         updateSummaries();
     }
 
-    // --- FITUR BARU KOREKSI SALDO (TERPISAH DARI LAPORAN ARUS KAS) ---
     async function editWalletBalance(id) {
         let w = wallets.find(wallet => wallet.id === id);
         if (w) {
@@ -744,7 +729,6 @@
                     const dateObj = new Date();
                     const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                     
-                    // Transaksi khusus dengan mainType: 'adjustment' agar tidak mengotori Laporan Kas
                     transactions.push({
                         id: Date.now(), timestamp: dateObj.getTime(), date: dateStr,
                         desc: 'Koreksi Saldo Manual',
@@ -819,7 +803,7 @@
             const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
             transactions.push({
                 id: Date.now() + 1, timestamp: dateObj.getTime(), date: dateStr,
-                desc: 'Saldo Awal Akun', mainType: 'adjustment', category: 'Saldo Awal', // Agar tidak masuk ke arus kas
+                desc: 'Saldo Awal Akun', mainType: 'adjustment', category: 'Saldo Awal', 
                 amount: initialBalance, walletName: name, walletId: newId
             });
         }
@@ -908,7 +892,6 @@
             else if (t.mainType === 'debt') {
                 badgeClass = 'bg-purple'; valColor = 'color: var(--purple);'; trackPrefix = '💳 ';
             }
-            // Khusus Tampilan Adjustments (Koreksi Saldo)
             else if (t.mainType === 'adjustment') {
                 badgeClass = 'bg-gray'; 
                 valColor = t.category === 'Koreksi (+)' || t.category === 'Saldo Awal' ? 'color: var(--success);' : 'color: var(--danger);'; 
@@ -952,7 +935,6 @@
         let currentPeriodDebtTaken = 0; let currentPeriodDebtPaid = 0;
 
         filteredTrans.forEach(t => {
-            // MENGABAIKAN mainType 'adjustment' SECARA TOTAL DARI ARUS KAS
             if (t.mainType === 'adjustment') return; 
 
             if (t.mainType === 'income' || t.mainType === 'expense' || t.mainType === 'debt') {
@@ -1043,7 +1025,7 @@
             let itemHtml = `
                 <div class="flow-item">
                     <div class="flow-header">
-                        <span class="flow-category">${c.name}</span>
+                        <span class="flow-category">${c.label}</span>
                         <span class="flow-amount" style="color: var(--danger)">${formatRp(c.amount)} <span style="font-size:0.8rem; color:var(--text-muted);">(${percentage}%)</span></span>
                     </div>
                     <div class="flow-bar-bg">
@@ -1122,7 +1104,6 @@
             if (wFrom) wFrom.balance += t.amount;
             if (wTo) wTo.balance -= t.amount;
         } else if (t.mainType === 'adjustment') {
-            // MENGEMBALIKAN SALDO DARI HASIL KOREKSI YANG DIHAPUS
             let w = wallets.find(w => w.id === t.walletId);
             if (w) {
                 if (t.category === 'Koreksi (+)' || t.category === 'Saldo Awal') w.balance -= t.amount;
@@ -1147,7 +1128,6 @@
         renderWallets(); applyFilter();
     }
 
-    // INISIALISASI PERTAMA KALI
     setDefaultDate();
     updateCategoryOptions(); 
     generateDynamicFilters();
