@@ -10,7 +10,6 @@
     <link rel="apple-touch-icon" href="Logo Transaksiku.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
 
@@ -206,7 +205,7 @@
 <div class="container">
     <div class="header-title">
         <h1>Dashboard Keuangan</h1>
-        <p style="color: var(--text-muted);">Catat Transaksi Harianmu di Transaksiku</p>
+        <p style="color: var(--text-muted);">Manajemen arus kas, aset, dan investasi pribadi.</p>
     </div>
 
     <div class="summary-grid">
@@ -399,13 +398,25 @@
 </div>
 
 <script>
+    // Penanganan Splash Screen Aman
     window.addEventListener('load', () => {
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
-            splash.classList.add('hidden');
-            setTimeout(() => splash.style.display = 'none', 600);
+            if (splash) {
+                splash.classList.add('hidden');
+                setTimeout(() => splash.style.display = 'none', 600);
+            }
         }, 1500); 
     });
+
+    // PENDAFTARAN SERVICE WORKER UNTUK STABILITAS OFFLINE / HOME SCREEN
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker aktif!', reg.scope))
+                .catch(err => console.log('Service Worker bermasalah:', err));
+        });
+    }
 
     let wallets = JSON.parse(localStorage.getItem('keuangan_wallets28')) || [
         { id: 1, name: 'Dompet Tunai', balance: 500000, type: 'cash' },
@@ -1025,7 +1036,7 @@
             let itemHtml = `
                 <div class="flow-item">
                     <div class="flow-header">
-                        <span class="flow-category">${c.label}</span>
+                        <span class="flow-category">${c.name}</span>
                         <span class="flow-amount" style="color: var(--danger)">${formatRp(c.amount)} <span style="font-size:0.8rem; color:var(--text-muted);">(${percentage}%)</span></span>
                     </div>
                     <div class="flow-bar-bg">
@@ -1058,7 +1069,12 @@
         }
         if(debtCount === 0) debtContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Bersih! Tidak ada pinjaman diambil.</p>';
 
-        renderChart(totalIncome, totalExpense, currentPeriodDebtTaken);
+        // CEK INSTABILITAS CDN CHART.JS SEBELUM RENDERING GRAPH
+        if (typeof Chart !== 'undefined') {
+            renderChart(totalIncome, totalExpense, currentPeriodDebtTaken);
+        } else {
+            console.warn("Chart.js gagal dimuat dari CDN. Grafik dinonaktifkan sementara.");
+        }
     }
 
     function renderChart(totalIncome, totalExpense, currentPeriodDebtTaken) {
