@@ -1,24 +1,22 @@
-const CACHE_NAME = 'transaksiku-cache-v2'; // Versi diubah ke v2 untuk memaksa pembaruan
+const CACHE_NAME = 'transaksiku-cache-v3';
 const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  './logo.png',
+  'index.html',
+  'manifest.json',
+  'logo.png',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
-// Tahap instalasi & penyimpanan aset ke memori HP
+// Tahap instalasi & penyimpanan
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  // Memaksa Service Worker baru untuk langsung aktif
   self.skipWaiting();
 });
 
-// Membersihkan cache lama jika ada pembaruan
+// Pembersihan sistem lama secara paksa
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -34,7 +32,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Mengambil aset dari memori lokal
+// Pemanggilan aplikasi
 self.addEventListener('fetch', (event) => {
   event.waitUntil(
     caches.match(event.request).then((response) => {
