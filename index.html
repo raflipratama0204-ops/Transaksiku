@@ -43,6 +43,11 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a, button, input, select, .bottom-nav-item, .drawer-nav-item, .wallet-item, .btn-option, .btn {
+            -webkit-tap-highlight-color: transparent !important;
         }
 
         body {
@@ -1562,6 +1567,116 @@
             background: #131c2e !important;
             border-color: #334155 !important;
         }
+
+        /* Transaksi Kartu Styles */
+        .transaction-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+            padding-bottom: 20px;
+        }
+        .transaction-card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -1px rgba(0, 0, 0, 0.05);
+        }
+        body.dark-theme .transaction-card {
+            border-color: #334155;
+            background: #131c2e;
+        }
+
+        /* Garis Tepi Kiri (Indikator Tipe Transaksi) */
+        .transaction-card.income-card { border-left: 5px solid var(--success); }
+        .transaction-card.expense-card { border-left: 5px solid var(--danger); }
+        .transaction-card.debt-card { border-left: 5px solid var(--purple); }
+        .transaction-card.transfer-card { border-left: 5px solid var(--accent); }
+        .transaction-card.adjustment-card { border-left: 5px solid var(--text-muted); }
+
+        .t-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .t-card-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .t-card-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .t-card-desc {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .t-card-amount {
+            font-weight: 800;
+            font-size: 1.15rem;
+            white-space: nowrap;
+        }
+        .t-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 10px;
+            margin-top: 2px;
+        }
+        body.dark-theme .t-card-footer {
+            border-top-color: #334155;
+        }
+        .t-card-wallet {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .t-card-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .btn-t-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.15s;
+            padding: 2px 4px;
+        }
+        .btn-t-edit {
+            color: var(--accent);
+        }
+        .btn-t-edit:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+        .btn-t-delete {
+            color: var(--danger);
+        }
+        .btn-t-delete:hover {
+            color: #dc2626;
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -1889,23 +2004,7 @@
                 </p>
             </div>
 
-            <div class="card">
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Keterangan</th>
-                                <th>Kategori</th>
-                                <th>Jalur Uang</th>
-                                <th>Nominal</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transaction-list"></tbody>
-                    </table>
-                </div>
-            </div>
+            <div id="transaction-list" class="transaction-list-container"></div>
         </div>
 
         <!-- VIEW 3: LAPORAN ARUS KAS -->
@@ -2548,8 +2647,8 @@
         }
 
         function renderTransactions() {
-            const tbody = document.getElementById('transaction-list');
-            tbody.innerHTML = '';
+            const container = document.getElementById('transaction-list');
+            container.innerHTML = '';
 
             const filteredTrans = getFilteredTransactions();
             const sortedTrans = [...filteredTrans].sort((a, b) => {
@@ -2559,44 +2658,58 @@
             });
 
             if (sortedTrans.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding: 25px;">Tidak ada transaksi sesuai filter yang dipilih.</td></tr>`;
+                container.innerHTML = `<div class="card" style="text-align:center; color:var(--text-muted); padding: 35px; border-radius: 16px; font-weight: 500;">Tidak ada transaksi sesuai filter yang dipilih.</div>`;
                 return;
             }
 
             sortedTrans.forEach(t => {
-                let badgeClass = ''; let valColor = ''; let trackPrefix = '';
+                let badgeClass = ''; let valColor = ''; let cardTypeClass = '';
 
                 if (t.mainType === 'income') {
-                    badgeClass = 'bg-green'; valColor = 'color: var(--success);'; trackPrefix = '';
+                    badgeClass = 'bg-green'; valColor = 'color: var(--success);'; cardTypeClass = 'income-card';
                 }
                 else if (t.mainType === 'expense') {
-                    badgeClass = 'bg-red'; valColor = 'color: var(--danger);'; trackPrefix = '';
+                    badgeClass = 'bg-red'; valColor = 'color: var(--danger);'; cardTypeClass = 'expense-card';
                 }
                 else if (t.mainType === 'debt') {
-                    badgeClass = 'bg-purple'; valColor = 'color: var(--purple);'; trackPrefix = '';
+                    badgeClass = 'bg-purple'; valColor = 'color: var(--purple);'; cardTypeClass = 'debt-card';
                 }
                 else if (t.mainType === 'adjustment') {
                     badgeClass = 'bg-gray';
                     valColor = t.category === 'Koreksi (+)' || t.category === 'Saldo Awal' ? 'color: var(--success);' : 'color: var(--danger);';
-                    trackPrefix = '';
+                    cardTypeClass = 'adjustment-card';
                 }
                 else {
-                    badgeClass = 'bg-blue'; valColor = 'color: var(--text-main);'; trackPrefix = '';
+                    badgeClass = 'bg-blue'; valColor = 'color: var(--text-main);'; cardTypeClass = 'transfer-card';
                 }
 
-                tbody.innerHTML += `
-                <tr>
-                    <td style="color: var(--text-muted); font-size: 0.85rem;">${t.date}</td>
-                    <td class="text-bold">${t.desc}</td>
-                    <td><span class="badge ${badgeClass}">${t.category}</span></td>
-                    <td style="font-size: 0.9rem; font-weight: 500; color: var(--primary);">${trackPrefix}${t.walletName}</td>
-                    <td class="text-bold" style="${valColor}">${formatRp(t.amount)}</td>
-                    <td style="white-space: nowrap;">
-                        <button onclick="editTransaction(${t.id})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size: 1rem; margin-right: 8px;" title="Ubah">✏️</button>
-                        <button onclick="deleteTransaction(${t.id})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 1rem;" title="Hapus">❌</button>
-                    </td>
-                </tr>
-            `;
+                // Wallet/Source representation with nice emojis/arrows
+                let walletDisplay = '';
+                if (t.mainType === 'transfer') {
+                    walletDisplay = `🔄 ${t.walletName}`;
+                } else {
+                    walletDisplay = `💳 ${t.walletName}`;
+                }
+
+                container.innerHTML += `
+                    <div class="transaction-card ${cardTypeClass}">
+                        <div class="t-card-header">
+                            <span class="badge ${badgeClass}">${t.category}</span>
+                            <span class="t-card-date">${t.date}</span>
+                        </div>
+                        <div class="t-card-body">
+                            <span class="t-card-desc">${t.desc}</span>
+                            <span class="t-card-amount" style="${valColor}">${formatRp(t.amount)}</span>
+                        </div>
+                        <div class="t-card-footer">
+                            <div class="t-card-wallet">${walletDisplay}</div>
+                            <div class="t-card-actions">
+                                <button onclick="editTransaction(${t.id})" class="btn-t-action btn-t-edit">✏️ Ubah</button>
+                                <button onclick="deleteTransaction(${t.id})" class="btn-t-action btn-t-delete">🗑️ Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
         }
 
