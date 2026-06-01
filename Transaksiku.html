@@ -407,7 +407,17 @@
         }
         
         .app-view {
-            transition: opacity 0.2s ease-in-out;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+        }
+        .app-view.active {
+            display: block;
+        }
+        .app-view.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         /* ADJUST HEADER AND CONTAINERS FOR CLEANER TOP */
@@ -527,6 +537,224 @@
         body.dark-theme .theme-toggle-btn:hover {
             background: #334155;
         }
+
+        /* BOTTOM NAVIGATION BAR STYLES */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 30px);
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            border-radius: 24px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 8px;
+            z-index: 9999;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.dark-theme .bottom-nav {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        .bottom-nav-item {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 10px 16px;
+            border-radius: 16px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+        }
+
+        .bottom-nav-label {
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s;
+        }
+
+        .bottom-nav-item:hover {
+            color: var(--accent);
+        }
+
+        .bottom-nav-item:hover .bottom-nav-label {
+            transform: translateY(-1px);
+        }
+
+        .bottom-nav-item.active {
+            color: var(--accent);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .bottom-nav-item.active .bottom-nav-label {
+            transform: scale(1.05);
+        }
+
+        body.dark-theme .bottom-nav-item.active {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        /* Adjust bottom padding to prevent content clipping */
+        body {
+            padding-bottom: 95px !important;
+        }
+
+        /* PWA INSTALL BANNER STYLES */
+        .pwa-banner {
+            position: fixed;
+            bottom: 100px; /* Di atas bottom nav bar */
+            left: 50%;
+            transform: translateX(-50%) translateY(40px);
+            width: calc(100% - 30px);
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            z-index: 9998;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            gap: 12px;
+        }
+
+        .pwa-banner.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        body.dark-theme .pwa-banner {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .pwa-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .pwa-banner-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .pwa-banner-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .pwa-banner-text h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .pwa-banner-text p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.25;
+        }
+
+        .pwa-banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-pwa-install {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-pwa-install:hover {
+            transform: scale(1.03);
+            background: #2563eb;
+        }
+
+        .btn-pwa-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn-pwa-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-main);
+        }
+
+        body.dark-theme .btn-pwa-close:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .pwa-banner {
+                bottom: 85px; /* Sesuaikan untuk mobile di atas bottom nav */
+                width: calc(100% - 20px);
+                padding: 10px 12px;
+                border-radius: 16px;
+            }
+            .pwa-banner-logo {
+                width: 36px;
+                height: 36px;
+            }
+            .pwa-banner-text h4 {
+                font-size: 0.85rem;
+            }
+            .pwa-banner-text p {
+                font-size: 0.7rem;
+            }
+            .btn-pwa-install {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+            .btn-pwa-close {
+                padding: 6px 8px;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -565,7 +793,7 @@
         </div>
         
         <div class="form-group">
-            <label>📅 Tanggal Transaksi</label>
+            <label>Tanggal Transaksi</label>
             <input type="date" id="edit-trans-date">
         </div>
 
@@ -632,11 +860,6 @@
         <button class="drawer-close-btn" onclick="toggleSidebar()">✕</button>
     </div>
     <nav class="drawer-nav" style="flex: 1;">
-        <button id="nav-dashboard" class="drawer-nav-item active" onclick="navigateTo('dashboard')">🏠 Dashboard</button>
-        <button id="nav-history" class="drawer-nav-item" onclick="navigateTo('history')">📜 Riwayat Transaksi</button>
-        <button id="nav-cashflow" class="drawer-nav-item" onclick="navigateTo('cashflow')">📊 Laporan Arus Kas</button>
-    </nav>
-    <div class="drawer-footer" style="padding-top: 15px; border-top: 1px solid #e2e8f0; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
         <button class="drawer-nav-item" onclick="toggleReminder()">
             <span id="reminder-toggle-icon">🔔</span>
             <span id="reminder-toggle-text">Pengingat Harian (Nonaktif)</span>
@@ -645,7 +868,7 @@
             <span id="theme-toggle-drawer-icon">🌙</span>
             <span id="theme-toggle-drawer-text">Mode Malam</span>
         </button>
-    </div>
+    </nav>
 </div>
 
 <div class="container">
@@ -665,7 +888,7 @@
     </div>
 
     <!-- VIEW 1: DASHBOARD -->
-    <div id="view-dashboard" class="app-view">
+    <div id="view-dashboard" class="app-view active visible">
         <div class="header-title">
             <h1>Dashboard Keuangan</h1>
             <p style="color: var(--text-muted);">Catat Transaksi Keuangan Anda di Transaksiku.</p>
@@ -724,7 +947,7 @@
                     <h3>Catat Transaksi Baru</h3>
                     
                     <div class="form-group">
-                        <label>📅 Tanggal Transaksi</label>
+                        <label>Tanggal Transaksi</label>
                         <input type="date" id="trans-date">
                     </div>
 
@@ -732,10 +955,10 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Jenis Transaksi</label>
                             <select id="trans-main-type" onchange="updateCategoryOptions()">
-                                <option value="expense">📉 Pengeluaran / Rugi</option>
-                                <option value="income">📈 Pemasukan / Untung</option>
-                                <option value="debt" style="color: var(--purple); font-weight: bold;">💳 Ambil Hutang</option>
-                                <option value="transfer">🔄 Pindah Uang</option>
+                                <option value="expense">Pengeluaran / Rugi</option>
+                                <option value="income">Pemasukan / Untung</option>
+                                <option value="debt" style="color: var(--purple); font-weight: bold;">Ambil Hutang</option>
+                                <option value="transfer">Pindah Uang</option>
                             </select>
                         </div>
                         
@@ -778,7 +1001,7 @@
     </div>
 
     <!-- VIEW 2: RIWAYAT TRANSAKSI -->
-    <div id="view-history" class="app-view" style="display: none;">
+    <div id="view-history" class="app-view">
         <div class="header-title">
             <h1>Riwayat Transaksi</h1>
             <p style="color: var(--text-muted);">Daftar seluruh catatan pemasukan, pengeluaran, dan transfer Anda.</p>
@@ -804,7 +1027,7 @@
     </div>
 
     <!-- VIEW 3: LAPORAN ARUS KAS -->
-    <div id="view-cashflow" class="app-view" style="display: none;">
+    <div id="view-cashflow" class="app-view">
         <div class="header-title">
             <h1>Laporan Arus Kas</h1>
             <p style="color: var(--text-muted);">Analisis mendalam mengenai pemasukan, pengeluaran, dan portofolio Anda.</p>
@@ -1082,12 +1305,12 @@
         let sortedMonths = Array.from(monthsSet).sort((a,b) => b.localeCompare(a));
         
         let timeOptions = `
-            <option value="this_month">📅 Bulan Ini</option>
-            <option value="last_month">📅 1 Bulan yang Lalu</option>
-            <option value="last_3_months">📊 3 Bulan Terakhir</option>
-            <option value="last_6_months">📊 6 Bulan Terakhir</option>
-            <option value="ytd">📈 Tahun Ini (YTD)</option>
-            <option value="all">📊 Semua Waktu (All Time)</option>
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">1 Bulan yang Lalu</option>
+            <option value="last_3_months">3 Bulan Terakhir</option>
+            <option value="last_6_months">6 Bulan Terakhir</option>
+            <option value="ytd">Tahun Ini (YTD)</option>
+            <option value="all">Semua Waktu (All Time)</option>
         `;
         
         if (sortedMonths.length > 0) {
@@ -1095,7 +1318,7 @@
             sortedMonths.forEach(mStr => {
                 const [y, m] = mStr.split('-');
                 const dLabel = new Date(y, m - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-                timeOptions += `<option value="${mStr}">🗓️ ${dLabel}</option>`;
+                timeOptions += `<option value="${mStr}">${dLabel}</option>`;
             });
             timeOptions += `</optgroup>`;
         }
@@ -1127,16 +1350,10 @@
     }
 
     function navigateTo(viewId) {
-        // Sembunyikan semua view
-        document.querySelectorAll('.app-view').forEach(el => {
-            el.style.display = 'none';
-        });
-        
-        // Tampilkan view yang dipilih
+        const currentView = document.querySelector('.app-view.active');
         const targetView = document.getElementById('view-' + viewId);
-        if (targetView) {
-            targetView.style.display = 'block';
-        }
+        
+        if (currentView === targetView) return; // Already on this view
 
         // Tampilkan/sembunyikan global filter card
         const globalFilter = document.getElementById('global-filter-card');
@@ -1146,22 +1363,13 @@
             globalFilter.style.display = 'block';
         }
 
-        // Update status aktif di menu sidebar
-        document.querySelectorAll('.drawer-nav-item').forEach(el => {
+        // Update status aktif di bottom navigation bar
+        document.querySelectorAll('.bottom-nav-item').forEach(el => {
             el.classList.remove('active');
         });
-        const activeBtn = document.getElementById('nav-' + viewId);
-        if (activeBtn) {
-            activeBtn.classList.add('active');
-        }
-
-        // Pemicu rendering grafik Chart.js jika beralih ke Laporan Arus Kas
-        if (viewId === 'cashflow') {
-            setTimeout(() => {
-                applyFilter();
-            }, 50);
-        } else {
-            applyFilter();
+        const activeBottomBtn = document.getElementById('bottom-nav-' + viewId);
+        if (activeBottomBtn) {
+            activeBottomBtn.classList.add('active');
         }
 
         // Tutup sidebar drawer setelah navigasi
@@ -1169,6 +1377,40 @@
         const backdrop = document.getElementById('drawer-backdrop');
         drawer.classList.remove('open');
         backdrop.classList.remove('show');
+
+        // Pemicu rendering grafik Chart.js jika beralih ke Laporan Arus Kas
+        if (viewId === 'cashflow') {
+            setTimeout(() => {
+                applyFilter();
+            }, 300);
+        } else {
+            applyFilter();
+        }
+
+        if (currentView) {
+            // Fade out current view
+            currentView.classList.remove('visible');
+            
+            setTimeout(() => {
+                currentView.classList.remove('active');
+                currentView.style.display = 'none';
+                
+                // Show new view
+                targetView.style.display = 'block';
+                targetView.classList.add('active');
+                
+                // Force reflow
+                targetView.offsetHeight;
+                
+                targetView.classList.add('visible');
+            }, 250);
+        } else {
+            // Fallback jika tidak ada view aktif awal
+            targetView.style.display = 'block';
+            targetView.classList.add('active');
+            targetView.offsetHeight;
+            targetView.classList.add('visible');
+        }
     }
 
     function getFilteredTransactions() {
@@ -1435,21 +1677,21 @@
             let badgeClass = ''; let valColor = ''; let trackPrefix = '';
             
             if (t.mainType === 'income') { 
-                badgeClass = 'bg-green'; valColor = 'color: var(--success);'; trackPrefix = '📥 '; 
+                badgeClass = 'bg-green'; valColor = 'color: var(--success);'; trackPrefix = ''; 
             } 
             else if (t.mainType === 'expense') { 
-                badgeClass = 'bg-red'; valColor = 'color: var(--danger);'; trackPrefix = '📤 '; 
+                badgeClass = 'bg-red'; valColor = 'color: var(--danger);'; trackPrefix = ''; 
             } 
             else if (t.mainType === 'debt') {
-                badgeClass = 'bg-purple'; valColor = 'color: var(--purple);'; trackPrefix = '💳 ';
+                badgeClass = 'bg-purple'; valColor = 'color: var(--purple);'; trackPrefix = '';
             }
             else if (t.mainType === 'adjustment') {
                 badgeClass = 'bg-gray'; 
                 valColor = t.category === 'Koreksi (+)' || t.category === 'Saldo Awal' ? 'color: var(--success);' : 'color: var(--danger);'; 
-                trackPrefix = '⚙️ ';
+                trackPrefix = '';
             }
             else { 
-                badgeClass = 'bg-blue'; valColor = 'color: var(--text-main);'; trackPrefix = '🔄 '; 
+                badgeClass = 'bg-blue'; valColor = 'color: var(--text-main);'; trackPrefix = ''; 
             }
 
             tbody.innerHTML += `
@@ -1460,8 +1702,8 @@
                     <td style="font-size: 0.9rem; font-weight: 500; color: var(--primary);">${trackPrefix}${t.walletName}</td>
                     <td class="text-bold" style="${valColor}">${formatRp(t.amount)}</td>
                     <td style="white-space: nowrap;">
-                        <button onclick="editTransaction(${t.id})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size: 1rem; margin-right: 8px;" title="Ubah">✏️</button>
-                        <button onclick="deleteTransaction(${t.id})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 1rem;" title="Hapus">❌</button>
+                        <button onclick="editTransaction(${t.id})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size: 0.85rem; font-weight:600; margin-right: 12px; text-decoration: underline;" title="Ubah">Ubah</button>
+                        <button onclick="deleteTransaction(${t.id})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 0.85rem; font-weight:600; text-decoration: underline;" title="Hapus">Hapus</button>
                     </td>
                 </tr>
             `;
@@ -1630,8 +1872,8 @@
 
         if(totalIncome === 0 && totalExpense === 0 && currentPeriodDebtTaken === 0) {
             myChart = new Chart(ctx, {
-                type: 'pie',
-                data: { labels: ['Belum ada data'], datasets: [{ data: [1], backgroundColor: ['#e2e8f0'], borderWidth: 0 }] },
+                type: 'doughnut',
+                data: { labels: ['Belum ada data'], datasets: [{ data: [1], backgroundColor: ['#e2e8f0'], borderWidth: 0, cutout: '72%' }] },
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
@@ -1648,13 +1890,14 @@
         }
 
         myChart = new Chart(ctx, {
-            type: 'pie',
+            type: 'doughnut',
             data: {
                 labels: ['Pemasukan Murni', 'Pengeluaran', 'Hutang Diambil'],
                 datasets: [{
                     data: [totalIncome, totalExpense, currentPeriodDebtTaken],
                     backgroundColor: ['#10b981', '#ef4444', '#8b5cf6'],
-                    borderWidth: 2, borderColor: borderColor, hoverOffset: 6
+                    borderWidth: 2, borderColor: borderColor, hoverOffset: 6,
+                    cutout: '72%'
                 }]
             },
             options: {
@@ -1771,10 +2014,10 @@
         // Populate & select mainType
         const mainTypeSelect = document.getElementById('edit-trans-main-type');
         mainTypeSelect.innerHTML = `
-            <option value="expense">📉 Pengeluaran / Rugi</option>
-            <option value="income">📈 Pemasukan / Untung</option>
-            <option value="debt" style="color: var(--purple); font-weight: bold;">💳 Ambil Hutang</option>
-            <option value="transfer">🔄 Pindah Uang</option>
+            <option value="expense">Pengeluaran / Rugi</option>
+            <option value="income">Pemasukan / Untung</option>
+            <option value="debt" style="color: var(--purple); font-weight: bold;">Ambil Hutang</option>
+            <option value="transfer">Pindah Uang</option>
         `;
         if (t.mainType === 'adjustment') {
             mainTypeSelect.innerHTML += `<option value="adjustment">⚙️ Penyesuaian Saldo</option>`;
@@ -2099,7 +2342,108 @@
     // PWA Daily Reminder audit check shortly after page loads, and check every 1 hour
     setTimeout(checkDailyReminder, 5000);
     setInterval(checkDailyReminder, 60 * 60 * 1000);
+
+    // PWA CUSTOM INSTALLATION PROMPT LOGIC
+    let deferredPrompt;
+    const pwaBanner = document.getElementById('pwa-install-banner');
+    const pwaInstallBtn = document.getElementById('pwa-install-btn');
+    const pwaCloseBtn = document.getElementById('pwa-close-btn');
+
+    // Cek apakah banner sudah pernah ditutup dalam sesi ini
+    const isBannerDismissed = sessionStorage.getItem('pwa_banner_dismissed') === 'true';
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Mencegah browser menampilkan prompt bawaan secara otomatis
+        e.preventDefault();
+        // Simpan event agar bisa dipanggil nanti
+        deferredPrompt = e;
+        
+        // Tampilkan banner kustom kita jika belum pernah ditutup dalam sesi ini
+        if (!isBannerDismissed && pwaBanner) {
+            // Berikan jeda 2 detik setelah halaman dimuat agar lebih natural
+            setTimeout(() => {
+                pwaBanner.style.display = 'flex';
+                // Force reflow
+                pwaBanner.offsetHeight;
+                pwaBanner.classList.add('show');
+            }, 2000);
+        }
+    });
+
+    if (pwaInstallBtn) {
+        pwaInstallBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            // Sembunyikan banner kustom kita
+            pwaBanner.classList.remove('show');
+            setTimeout(() => {
+                pwaBanner.style.display = 'none';
+            }, 400);
+            
+            // Tampilkan prompt instalasi bawaan browser
+            deferredPrompt.prompt();
+            
+            // Tunggu pilihan pengguna
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`Pilihan user untuk instalasi: ${outcome}`);
+            
+            // Hapus deferredPrompt karena hanya bisa digunakan sekali
+            deferredPrompt = null;
+        });
+    }
+
+    if (pwaCloseBtn) {
+        pwaCloseBtn.addEventListener('click', () => {
+            // Sembunyikan banner
+            pwaBanner.classList.remove('show');
+            setTimeout(() => {
+                pwaBanner.style.display = 'none';
+            }, 400);
+            // Simpan di sessionStorage agar tidak muncul lagi di sesi browsing ini
+            sessionStorage.setItem('pwa_banner_dismissed', 'true');
+        });
+    }
+
+    // Jika aplikasi berhasil diinstal, bersihkan deferredPrompt
+    window.addEventListener('appinstalled', (evt) => {
+        console.log('Transaksiku berhasil diinstal!');
+        deferredPrompt = null;
+        if (pwaBanner) {
+            pwaBanner.classList.remove('show');
+            setTimeout(() => {
+                pwaBanner.style.display = 'none';
+            }, 400);
+        }
+    });
 </script>
+
+<!-- INSTALL PWA BANNER -->
+<div id="pwa-install-banner" class="pwa-banner" style="display: none;">
+    <div class="pwa-banner-content">
+        <img src="logo.png" alt="Transaksiku Logo" class="pwa-banner-logo">
+        <div class="pwa-banner-text">
+            <h4>Pasang Transaksiku 📱</h4>
+            <p>Akses instan di layar utama, performa lebih cepat, dan gunakan secara offline!</p>
+        </div>
+    </div>
+    <div class="pwa-banner-actions">
+        <button id="pwa-install-btn" class="btn btn-pwa-install">Instal</button>
+        <button id="pwa-close-btn" class="btn-pwa-close">Nanti Saja</button>
+    </div>
+</div>
+
+<!-- BOTTOM NAVIGATION BAR -->
+<div class="bottom-nav">
+    <button id="bottom-nav-dashboard" class="bottom-nav-item active" onclick="navigateTo('dashboard')">
+        <span class="bottom-nav-label">Dashboard</span>
+    </button>
+    <button id="bottom-nav-history" class="bottom-nav-item" onclick="navigateTo('history')">
+        <span class="bottom-nav-label">Riwayat</span>
+    </button>
+    <button id="bottom-nav-cashflow" class="bottom-nav-item" onclick="navigateTo('cashflow')">
+        <span class="bottom-nav-label">Laporan</span>
+    </button>
+</div>
 
 </body>
 </html>
