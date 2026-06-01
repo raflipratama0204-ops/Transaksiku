@@ -1,4 +1,4 @@
-const CACHE_NAME = 'transaksiku-cache-v17';
+const CACHE_NAME = 'transaksiku-cache-v14';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

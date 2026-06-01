@@ -770,20 +770,63 @@
                 font-size: 0.8rem;
             }
 
-            /* Table Riwayat Transaksi */
-            table {
-                font-size: 0.8rem;
-                margin-top: 5px;
+            /* Riwayat Transaksi (Compact Mobile Cards) */
+            .transaction-list-container {
+                gap: 8px;
+                margin-top: 6px;
             }
 
-            th,
-            td {
-                padding: 8px 5px;
+            .transaction-card {
+                padding: 10px 12px;
+                border-radius: 10px;
+                gap: 6px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+            }
+
+            .transaction-card.income-card { border-left-width: 4px; }
+            .transaction-card.expense-card { border-left-width: 4px; }
+            .transaction-card.debt-card { border-left-width: 4px; }
+            .transaction-card.transfer-card { border-left-width: 4px; }
+            .transaction-card.adjustment-card { border-left-width: 4px; }
+
+            .t-card-date {
+                font-size: 0.72rem;
+            }
+
+            .t-card-body {
+                gap: 10px;
+            }
+
+            .t-card-desc {
+                font-size: 0.88rem;
+            }
+
+            .t-card-amount {
+                font-size: 0.95rem;
+            }
+
+            .t-card-footer {
+                padding-top: 6px;
+                margin-top: 0px;
+            }
+
+            .t-card-wallet {
+                font-size: 0.75rem;
+                gap: 4px;
+            }
+
+            .t-card-actions {
+                gap: 10px;
+            }
+
+            .btn-t-action {
+                font-size: 0.75rem;
+                padding: 1px 3px;
             }
 
             .badge {
                 padding: 3px 6px;
-                font-size: 0.7rem;
+                font-size: 0.65rem;
             }
 
             /* Metrics & Laporan Arus Kas */
@@ -860,7 +903,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 99999;
             opacity: 0;
             transition: opacity 0.2s ease-in-out;
         }
@@ -927,6 +970,9 @@
         .btn-modal-cancel {
             background: #f1f5f9;
             color: var(--text-main);
+        }
+        .btn-modal-cancel:hover {
+            background: #cbd5e1;
         }
 
         #add-wallet-container {
@@ -1158,6 +1204,15 @@
             background-color: #334155;
             color: #f1f5f9;
             border-color: #475569;
+        }
+
+        body.dark-theme .btn-modal-cancel {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-theme .btn-modal-cancel:hover {
+            background: #475569;
         }
 
         body.dark-theme .wallet-dropdown {
@@ -2016,7 +2071,7 @@
             </div>
 
             <div class="card">
-                <div class="metrics-grid-3">
+                <div class="metrics-grid-2">
                     <div class="metric-box">
                         <p>Pemasukan</p>
                         <h3 id="metric-income" style="color: var(--success);">Rp 0</h3>
@@ -2025,10 +2080,7 @@
                         <p>Pengeluaran</p>
                         <h3 id="metric-expense" style="color: var(--danger);">Rp 0</h3>
                     </div>
-                    <div class="metric-box" style="border: 2px solid var(--accent); background: #eff6ff;">
-                        <p>Arus Kas (Net)</p>
-                        <h3 id="metric-net" style="color: var(--accent);">Rp 0</h3>
-                    </div>
+                    <span id="metric-net" style="display: none;">Rp 0</span>
                 </div>
 
                 <div class="metrics-grid-2">
@@ -2873,6 +2925,44 @@
             const textColor = isDark ? '#cbd5e1' : '#1e293b';
             const borderColor = isDark ? '#1e293b' : '#ffffff';
 
+            const centerTextPlugin = {
+                id: 'centerText',
+                beforeDraw: function(chart) {
+                    const width = chart.width;
+                    const height = chart.height;
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    
+                    const meta = chart.getDatasetMeta(0);
+                    if (meta && meta.data && meta.data.length > 0) {
+                        const firstArc = meta.data[0];
+                        const centerX = firstArc.x;
+                        const centerY = firstArc.y;
+                        
+                        const net = totalIncome + currentPeriodDebtTaken - totalExpense;
+                        const netStr = formatRp(net);
+                        const labelColor = isDark ? '#94a3b8' : '#64748b';
+                        const valColor = net < 0 ? '#ef4444' : (net > 0 ? '#10b981' : (isDark ? '#60a5fa' : '#2563eb'));
+                        
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        
+                        const sizeFactor = Math.min(width, height) / 250;
+                        const labelSize = Math.max(11, Math.round(13 * sizeFactor));
+                        const valSize = Math.max(13, Math.round(16 * sizeFactor));
+                        
+                        ctx.font = `600 ${labelSize}px 'Inter', sans-serif`;
+                        ctx.fillStyle = labelColor;
+                        ctx.fillText("Arus Kas (Net)", centerX, centerY - (12 * sizeFactor));
+                        
+                        ctx.font = `800 ${valSize}px 'Inter', sans-serif`;
+                        ctx.fillStyle = valColor;
+                        ctx.fillText(netStr, centerX, centerY + (10 * sizeFactor));
+                    }
+                    ctx.restore();
+                }
+            };
+
             if (totalIncome === 0 && totalExpense === 0 && currentPeriodDebtTaken === 0) {
                 myChart = new Chart(ctx, {
                     type: 'doughnut',
@@ -2887,7 +2977,8 @@
                                 labels: { color: textColor, font: { family: 'Inter' } }
                             }
                         }
-                    }
+                    },
+                    plugins: [centerTextPlugin]
                 });
                 return;
             }
@@ -2914,7 +3005,8 @@
                             }
                         }
                     }
-                }
+                },
+                plugins: [centerTextPlugin]
             });
         }
 
