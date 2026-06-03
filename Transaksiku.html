@@ -4203,6 +4203,14 @@
 
             populateEditCategories(mainType);
 
+            // Restore the category if it exists in the newly populated list
+            if (category) {
+                const categorySelect = document.getElementById('edit-trans-category');
+                if (categorySelect.querySelector(`option[value="${category}"]`)) {
+                    categorySelect.value = category;
+                }
+            }
+
             if (mainType === 'transfer') {
                 if (debtCashflowField) debtCashflowField.style.display = 'none';
                 if (debtDueDayField) debtDueDayField.style.display = 'none';
